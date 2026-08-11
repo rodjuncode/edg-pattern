@@ -1,0 +1,16 @@
+# Normaliza fim de linha: LF no repositório, nativo no disco de cada um.
+# Sem isto, um clone em Mac ou Linux acusa o arquivo inteiro como modificado.
+* text=auto eol=lf
+
+# Binários — não normalizar.
+*.woff2 binary
+*.png   binary
+*.jpg   binary
+*.pdf   binary
+
+# Gerado por script a partir dos .woff2: é base64 em linha única.
+# Sem -diff, qualquer regeração polui o diff com 91 KB ilegíveis.
+assets/fonts/host-grotesk.css -diff linguist-generated
+
+# SVG é texto e deve ser lido como texto nas revisões.
+*.svg text eol=lf
