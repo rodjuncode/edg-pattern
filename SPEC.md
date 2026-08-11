@@ -16,15 +16,22 @@ Consequência para a arquitetura: o módulo é uma função que recebe parâmetr
 
 ## 3. Regra de repetição
 
-*A definir* — grade ortogonal, isométrica, deslocamento entre linhas, rotação, espelhamento, densidade.
+**Decidido — a grelha.** Grade ortogonal cujas células têm a **proporção do arquivo de logo**: 583,114 / 485 = **1,2023** (mais larga que alta). A proporção é lida do `viewBox` em tempo de geração, não fixada no código.
+
+Como a proporção é fixa, não cabe um número inteiro de células nas duas direções ao mesmo tempo. A largura manda: `densidade` colunas cabem exatas na largura da tela, e as linhas transbordam. O excedente é dividido meio a meio entre topo e base, para o corte ficar simétrico e a grelha ler como padrão infinito recortado pela tela.
+
+*A definir* — deslocamento entre linhas, rotação, espelhamento.
 
 ## 4. Parâmetros controláveis
 
-*A definir* — a lista de controles expostos na interface e a faixa de valores de cada um.
-
 | Parâmetro | Tipo de controle | Faixa / opções | Padrão |
 |---|---|---|---|
-| | | | |
+| Exibir grelha | interruptor | ligado / desligado | ligado |
+| Densidade | dois botões, com leitura numérica | 2 a 48 colunas | 12 |
+
+Mexer na densidade com a grelha apagada reacende a grelha — o gesto não teria retorno visível de outro modo.
+
+*A definir* — os demais controles.
 
 ## 5. Cor
 
@@ -36,7 +43,15 @@ Consequência para a arquitetura: o módulo é uma função que recebe parâmetr
 
 ## 7. Interface
 
-*A definir* — organização dos controles, tamanho e proporção da área de pré-visualização, comportamento responsivo.
+**Decidido.** Minimalista, fundo mostarda da marca (`#E6B100`). A área de desenho ocupa a viewport inteira, menos a barra de ferramentas.
+
+**Barra de ferramentas** — vertical à esquerda, com **1/24 da largura da tela**. Do topo para baixo: logo da EDG na versão monocromática castanha, divisor, e os controles.
+
+A largura tem trava nas duas pontas (`clamp(52px, 100vw/24, 88px)`): abaixo de ~52 px os botões deixam de ser clicáveis com precisão, e num monitor ultrawide 1/24 já não seria "fina".
+
+**Mobile** (até 640 px) — a barra vira bandeja no rodapé, na horizontal, ao alcance do polegar. A tela mantém a largura inteira, que é o que importa numa viewport estreita. Só a direção do flex muda; a marcação é a mesma.
+
+*A definir* — organização dos controles que ainda virão.
 
 ## 8. Exportação
 

@@ -25,16 +25,31 @@ Assets prontos: logo vetorial e tipografia embarcada, documentados em [BRAND.md]
 ## Estrutura
 
 ```
-assets/
-  logo/logo.svg           lockup completo, monocromático ou duas cores via CSS
-  fonts/host-grotesk.css  Host Grotesk variável, .woff2 embutidos em base64
-  fonts/*.woff2, OFL.txt  originais e licença
-verificacao.html          conferência visual dos assets (não faz parte da ferramenta)
+index.html                interface — barra de ferramentas e área de desenho
+css/estilo.css            estilos
+js/logo.js                GERADO a partir de assets/logo/logo.svg
+js/grelha.js              geometria da grelha — funções puras, não tocam no DOM
+js/app.js                 estado e ligação com a interface
 
-index.html                (a fazer) página única — interface
-css/                      (a fazer) estilos
-js/                       (a fazer) geração, renderização e exportação
+assets/
+  logo/logo.svg           lockup; monocromático ou duas cores via CSS
+  fonts/host-grotesk.css  GERADO — Host Grotesk com os .woff2 em base64
+  fonts/*.woff2, OFL.txt  originais e licença
+verificacao.html          conferência visual dos assets (fora da ferramenta)
 ```
+
+`js/grelha.js` não conhece o DOM: entram números, sai geometria. É essa separação que vai permitir gerar a padronagem para exportação sem passar pela tela.
+
+## Manutenção dos arquivos gerados
+
+Dois arquivos são derivados de outros e **não devem ser editados à mão**. Sem build step, a regeração é manual — se você mexer na origem, precisa refazer o derivado.
+
+| Gerado | Origem | Por que existe |
+|---|---|---|
+| `js/logo.js` | `assets/logo/logo.svg` | `fetch` de arquivo local não funciona em `file://`, e o logo precisa estar inline no DOM para o CSS pintá-lo. Carrega também a proporção lida do `viewBox`. |
+| `assets/fonts/host-grotesk.css` | `assets/fonts/*.woff2` | O Chrome bloqueia `@font-face` de arquivo local por CORS em `file://`. |
+
+Os comandos de regeração estão no cabeçalho de cada arquivo gerado.
 
 ## Versionamento
 

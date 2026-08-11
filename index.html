@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gerador de padronagem — Especialização em Design Gráfico</title>
+<link rel="stylesheet" href="assets/fonts/host-grotesk.css">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+<!-- Barra de ferramentas. Vira bandeja no rodapé em telas estreitas —
+     é só a direção do flex que muda; a marcação é a mesma. -->
+<aside class="barra">
+
+  <!-- O logo é injetado por js/logo.js. Não fica escrito aqui porque
+       precisa estar inline no DOM (para o CSS pintar via currentColor) e,
+       ao mesmo tempo, ter uma fonte única em assets/logo/logo.svg. -->
+  <div class="marca" id="marca" aria-hidden="true"></div>
+
+  <div class="divisor"></div>
+
+  <div class="ferramentas" role="group" aria-label="Grelha">
+
+    <button type="button" class="bt" id="bt-grelha"
+            aria-pressed="true" title="Exibir grelha" aria-label="Exibir grelha">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18"/>
+        <path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+      </svg>
+    </button>
+
+    <button type="button" class="bt" id="bt-densidade-mais"
+            title="Aumentar densidade da grelha" aria-label="Aumentar densidade da grelha">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </button>
+
+    <div class="leitura" id="leitura-densidade" role="status"
+         aria-label="Colunas da grelha">12</div>
+
+    <button type="button" class="bt" id="bt-densidade-menos"
+            title="Diminuir densidade da grelha" aria-label="Diminuir densidade da grelha">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M5 12h14"/>
+      </svg>
+    </button>
+
+  </div>
+</aside>
+
+<!-- Área de desenho. Ocupa todo o resto da viewport.
+     O viewBox é ajustado ao tamanho em pixels a cada redimensionamento. -->
+<svg class="tela" id="tela" xmlns="http://www.w3.org/2000/svg"
+     preserveAspectRatio="none" role="img"
+     aria-label="Área de composição da padronagem">
+  <path id="grelha" d=""/>
+</svg>
+
+<script src="js/logo.js"></script>
+<script src="js/grelha.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

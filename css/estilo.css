@@ -1,0 +1,176 @@
+/* Interface da ferramenta.
+   Minimalista de propósito: a tela é o assunto, a barra é serviço. */
+
+:root {
+  --edg-amarelo: #E6B100;
+  --edg-marrom:  #534432;
+
+  /* A barra pedida é 1/24 da largura da tela. O clamp protege as pontas:
+     abaixo de ~52px os botões deixam de ser clicáveis com precisão, e num
+     monitor ultrawide 1/24 já não seria "fina". */
+  --barra: clamp(52px, calc(100vw / 24), 88px);
+
+  --grelha-cor: var(--edg-marrom);
+  --grelha-opacidade: .38;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* a tela ocupa a viewport; nada rola */
+}
+
+body {
+  display: flex;
+  background: var(--edg-amarelo);
+  color: var(--edg-marrom);
+  font-family: 'Host Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------- barra --- */
+
+.barra {
+  flex: 0 0 var(--barra);
+  width: var(--barra);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem .4rem;
+  border-right: 1px solid rgba(83, 68, 50, .28);
+}
+
+.marca {
+  width: 100%;
+  padding: .15rem;
+  flex: 0 0 auto;
+}
+.marca svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--edg-marrom); /* versão monocromática, castanho */
+}
+
+.divisor {
+  width: 60%;
+  height: 1px;
+  background: rgba(83, 68, 50, .28);
+  flex: 0 0 auto;
+}
+
+.ferramentas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  width: 100%;
+}
+
+/* ------------------------------------------------------------- botões ----- */
+
+.bt {
+  -webkit-appearance: none;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--edg-marrom);
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s, opacity .12s;
+}
+.bt svg { width: 58%; height: auto; display: block; }
+
+.bt:hover:not(:disabled) { background: rgba(83, 68, 50, .12); }
+.bt:active:not(:disabled) { background: rgba(83, 68, 50, .2); }
+
+.bt:focus-visible {
+  outline: 2px solid var(--edg-marrom);
+  outline-offset: 1px;
+}
+
+.bt:disabled { opacity: .3; cursor: default; }
+
+/* Estado ligado do interruptor da grelha: invertido, para ler à distância. */
+.bt[aria-pressed="true"] {
+  background: var(--edg-marrom);
+  color: var(--edg-amarelo);
+}
+.bt[aria-pressed="true"]:hover { background: #6a5741; }
+
+/* Leitura numérica entre os dois botões de densidade. Sem ela, não dá para
+   saber onde se está — e "+" e "−" ficariam ambíguos quanto ao efeito. */
+.leitura {
+  font-size: clamp(.62rem, calc(100vw / 130), .8rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding: .1rem 0;
+  opacity: .85;
+  user-select: none;
+}
+
+/* --------------------------------------------------------------- tela ----- */
+
+.tela {
+  flex: 1 1 auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#grelha {
+  fill: none;
+  stroke: var(--grelha-cor);
+  stroke-opacity: var(--grelha-opacidade);
+  stroke-width: 1;
+  shape-rendering: crispEdges; /* linhas retas sem meio-pixel borrado */
+}
+
+/* -------------------------------------------------------------- mobile ---- */
+/* A barra vira bandeja no rodapé: alcance do polegar, e a tela mantém a
+   largura inteira, que é o que importa numa viewport estreita. */
+
+@media (max-width: 640px) {
+  body { flex-direction: column; }
+
+  .barra {
+    order: 2;
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem .7rem;
+    border-right: none;
+    border-top: 1px solid rgba(83, 68, 50, .28);
+    padding-bottom: calc(.45rem + env(safe-area-inset-bottom));
+  }
+
+  .marca { width: auto; height: 34px; }
+  .marca svg { width: auto; height: 100%; }
+
+  .divisor { width: 1px; height: 26px; }
+
+  .ferramentas {
+    flex-direction: row;
+    width: auto;
+    gap: .3rem;
+  }
+
+  .bt { width: 42px; }
+
+  .leitura { font-size: .78rem; padding: 0 .1rem; }
+
+  .tela { order: 1; flex: 1 1 auto; min-height: 0; }
+}

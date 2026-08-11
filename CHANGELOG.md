@@ -8,9 +8,15 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 
 ### Adicionado
 
+- **Primeira versão da ferramenta.** `index.html` com barra lateral e área de desenho ocupando a viewport.
+- Barra de ferramentas com 1/24 da largura da tela, logo monocromático no topo. Vira bandeja no rodapé abaixo de 640 px.
+- Grelha sobre a área de desenho, com células na proporção do arquivo de logo (1,2023), lida do `viewBox`.
+- Interruptor de exibição da grelha e dois botões de densidade (2 a 48 colunas), com leitura numérica entre eles.
+- `js/grelha.js` — geometria em funções puras, sem acesso ao DOM.
+- `js/logo.js`, gerado a partir de `assets/logo/logo.svg`.
 - `LICENSE` — MIT para código e documentação, com exclusão explícita da marca e da tipografia.
 - `assets/logo/LICENSE.md` — direitos da identidade visual reservados a Julio Giacomelli.
-- Seção de licenças no `README.md`.
+- Seções de licenças e de manutenção dos arquivos gerados no `README.md`.
 
 ## [0.1.0] — 2026-08-11
 
