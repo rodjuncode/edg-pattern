@@ -52,6 +52,18 @@ A consequência prática está na primeira linha: **um arquivo gerado pela ferra
 
 Enquanto a versão for `0.y.z`, nada disso é garantido: é desenvolvimento inicial, e a padronagem ainda vai mudar de forma.
 
+## Licenças
+
+O repositório tem três materiais de origens diferentes, e cada um mantém a sua licença. **Não há uma licença única que cubra tudo.**
+
+| Material | Licença | Autoria |
+|---|---|---|
+| Código e documentação | [MIT](LICENSE) | Rodrigo Junqueira |
+| Identidade visual — `assets/logo/` | [Direitos reservados](assets/logo/LICENSE.md) | Julio Giacomelli |
+| Host Grotesk — `assets/fonts/` | [SIL OFL 1.1](assets/fonts/OFL.txt) | Element Type |
+
+Em resumo: o código é livre, a marca não é. Clonar o repositório dá liberdade sobre a ferramenta, não sobre a identidade visual que ela desenha.
+
 ## Créditos
 
 Identidade visual criada por **Julio Giacomelli** para o curso de Especialização em Design Gráfico da Unicamp.

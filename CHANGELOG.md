@@ -6,6 +6,12 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 
 ## [Não lançado]
 
+### Adicionado
+
+- `LICENSE` — MIT para código e documentação, com exclusão explícita da marca e da tipografia.
+- `assets/logo/LICENSE.md` — direitos da identidade visual reservados a Julio Giacomelli.
+- Seção de licenças no `README.md`.
+
 ## [0.1.0] — 2026-08-11
 
 Digestão da identidade visual. Sem ferramenta ainda: esta versão fecha a base de assets e de decisões sobre a qual a ferramenta será construída.
