@@ -16,8 +16,16 @@ const ROLAGEM_PAUSA   = 250; // ms parado que encerram o gesto e descartam a sob
 
 const estado = {
   grelhaVisivel: true,
-  densidade: 12
+  densidade: 12,
+
+  // A padronagem. Chave "coluna,linha" para o nome da forma que preenche a
+  // célula. Guardar índices, e não pixels, é o que permite a mesma padronagem
+  // ser redesenhada quando a janela muda de tamanho.
+  preenchidas: new Map()
 };
+
+// Forma usada ao preencher. Por ora só existe uma.
+let formaAtual = FORMA_PARALELOGRAMO;
 
 // Sobra de rolagem ainda não convertida em passo, e quando ela foi atualizada.
 let acumuladoRolagem = 0;
@@ -38,6 +46,7 @@ function iniciar() {
   el.tela = document.getElementById('tela');
   el.grelha = document.getElementById('grelha');
   el.realce = document.getElementById('realce');
+  el.padronagem = document.getElementById('padronagem');
   el.btGrelha = document.getElementById('bt-grelha');
   el.btMais = document.getElementById('bt-densidade-mais');
   el.btMenos = document.getElementById('bt-densidade-menos');
@@ -52,6 +61,10 @@ function iniciar() {
   // passive:false é obrigatório — sem ele o preventDefault é ignorado e o
   // navegador trata a rolagem como navegação (recuar página, no trackpad).
   el.tela.addEventListener('wheel', aoRolar, { passive: false });
+
+  // Clique preenche ou esvazia a célula. Vale para toque também: só o realce
+  // é exclusivo do mouse, preencher não.
+  el.tela.addEventListener('click', aoClicar);
 
   // Realce da célula sob o cursor.
   el.tela.addEventListener('pointermove', aoMover);
@@ -89,6 +102,38 @@ function mudarDensidade(passo) {
 
   sincronizarControles();
   redesenhar();
+}
+
+/** Converte a posição de um evento em célula da grelha, ou null. */
+function celulaDoEvento(ev) {
+  if (!grelhaAtual) return null;
+  const r = el.tela.getBoundingClientRect();
+  return celulaEm(grelhaAtual, ev.clientX - r.left, ev.clientY - r.top);
+}
+
+function chaveDe(coluna, linha) {
+  return coluna + ',' + linha;
+}
+
+/** Clicar preenche a célula; clicar de novo esvazia. */
+function aoClicar(ev) {
+  const celula = celulaDoEvento(ev);
+  if (!celula) return;
+
+  const chave = chaveDe(celula.coluna, celula.linha);
+  if (estado.preenchidas.has(chave)) {
+    estado.preenchidas.delete(chave);
+  } else {
+    estado.preenchidas.set(chave, formaAtual);
+  }
+
+  desenharPadronagem();
+  atualizarRealce(); // o realce troca de cor conforme a célula ficou cheia ou vazia
+}
+
+function desenharPadronagem() {
+  if (!grelhaAtual) return;
+  el.padronagem.setAttribute('d', padronagemParaPath(grelhaAtual, estado.preenchidas));
 }
 
 /**
@@ -146,6 +191,8 @@ function atualizarRealce() {
   el.realce.setAttribute('width', celula.largura);
   el.realce.setAttribute('height', celula.altura);
   el.realce.classList.remove('oculto');
+  el.realce.classList.toggle('sobre-preenchida',
+    estado.preenchidas.has(chaveDe(celula.coluna, celula.linha)));
 }
 
 /**
@@ -203,13 +250,9 @@ function redesenhar() {
   const a = Math.round(height * 100) / 100;
   el.tela.setAttribute('viewBox', `0 0 ${l} ${a}`);
 
-  if (!estado.grelhaVisivel) {
-    el.grelha.setAttribute('d', '');
-    grelhaAtual = null;
-    atualizarRealce();
-    return;
-  }
-
+  // A geometria é calculada sempre, mesmo com a grelha apagada: a padronagem
+  // precisa dela para se desenhar, e o clique para saber onde caiu. Apagar a
+  // grelha esconde o guia de construção, não o desenho.
   grelhaAtual = calcularGrelha({
     largura: l,
     altura: a,
@@ -217,7 +260,8 @@ function redesenhar() {
     proporcao: LOGO_PROPORCAO
   });
 
-  el.grelha.setAttribute('d', grelhaParaPath(grelhaAtual));
+  el.grelha.setAttribute('d', estado.grelhaVisivel ? grelhaParaPath(grelhaAtual) : '');
+  desenharPadronagem();
   atualizarRealce();
 }
 

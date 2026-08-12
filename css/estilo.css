@@ -130,6 +130,13 @@ body {
   display: block;
   width: 100%;
   height: 100%;
+  cursor: pointer; /* clicar preenche a célula */
+}
+
+/* A padronagem em si. Castanho chapado sobre o mostarda — o par da marca. */
+#padronagem {
+  fill: var(--edg-marrom);
+  stroke: none;
 }
 
 #grelha {
@@ -147,6 +154,13 @@ body {
   fill-opacity: .14;
   pointer-events: none; /* não rouba o wheel nem o pointermove da tela */
   shape-rendering: crispEdges;
+}
+
+/* Sobre uma célula já preenchida, escurecer não adiantaria: castanho a 14%
+   sobre castanho não se vê. Clareia em vez de escurecer. */
+#realce.sobre-preenchida {
+  fill: #fff;
+  fill-opacity: .16;
 }
 
 /* Quem controla a visibilidade é o JS, pelo tipo de ponteiro do evento.

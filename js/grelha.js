@@ -68,9 +68,21 @@ function grelhaParaPath(g) {
  * que existe na conta mas não na tela.
  */
 function celulaEm(g, x, y) {
-  const coluna = Math.floor(x / g.larguraCelula);
-  const linha = Math.floor((y - g.deslocY) / g.alturaCelula);
+  return celulaPorIndice(
+    g,
+    Math.floor(x / g.larguraCelula),
+    Math.floor((y - g.deslocY) / g.alturaCelula)
+  );
+}
 
+/**
+ * A mesma célula, pedida por índice em vez de por ponto.
+ *
+ * É por aqui que a padronagem desenha: ela guarda coluna e linha, não pixels.
+ * Devolve `null` para índices fora da grelha atual — acontece quando a
+ * densidade diminui e células preenchidas ficam além da última coluna.
+ */
+function celulaPorIndice(g, coluna, linha) {
   if (coluna < 0 || coluna >= g.colunas) return null;
   if (linha < 0 || linha >= g.linhas) return null;
 

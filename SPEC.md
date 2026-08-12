@@ -12,7 +12,30 @@ Gerar padronagens vetoriais alinhadas à identidade da Especialização em Desig
 
 Consequência para a arquitetura: o módulo é uma função que recebe parâmetros e devolve geometria. Trocar o desenho é trocar essa função, não trocar um arquivo.
 
-*A definir* — qual é a unidade que se repete, como ela é construída, quais variações admite.
+A padronagem se compõe **preenchendo células da grelha**. Cada célula preenchida recebe um *elemento*, que pode assumir formas diferentes. Clicar preenche; clicar de novo esvazia.
+
+### Forma 1 — paralelogramo
+
+Um quadrado do tamanho da **altura da célula**, inclinado para a direita até que dois vértices encostem em cantos opostos da célula. Numa célula de largura `W`, altura `H` e origem no canto superior esquerdo:
+
+```
+(W−H, 0) ──── (W, 0)     lado superior, comprimento H,
+   ╲             ╲        vértice direito no canto superior direito
+    ╲             ╲
+   (0, H) ──── (H, H)    lado inferior, comprimento H,
+                          vértice esquerdo no canto inferior esquerdo
+```
+
+A inclinação resulta em `W − H`. Como a célula tem a proporção do logo, isso dá `0,2023 × H` — praticamente a mesma inclinação do paralelogramo da marca, que é `0,2085 × H`. O elemento herda o gesto do logo por consequência da proporção, não por cópia.
+
+**Como os elementos se relacionam** (decorre da geometria, não é escolha à parte):
+
+- **Vizinhos na horizontal não se tocam.** Entre eles sobra uma fresta que é ela própria um paralelogramo, de mesma inclinação e largura `W − H`. A padronagem lê como barras ritmadas, não como faixa contínua.
+- **Vizinhos na vertical se tocam** ao longo de `2H − W` (0,798 × H), cerca de 80% da aresta. O restante vira entalhe, e uma coluna de elementos empilhados ganha perfil escalonado.
+
+Se algum dia a intenção for fundir vizinhos horizontais, o lado do elemento precisa medir `W`, não `H`.
+
+*A definir* — as demais formas.
 
 ## 3. Regra de repetição
 

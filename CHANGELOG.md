@@ -12,6 +12,10 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 - Barra de ferramentas com 1/24 da largura da tela, logo monocromático no topo. Vira bandeja no rodapé abaixo de 640 px.
 - Grelha sobre a área de desenho, com células na proporção do arquivo de logo (1,2023), lida do `viewBox`.
 - Interruptor de exibição da grelha e dois botões de densidade (2 a 48 colunas), com leitura numérica entre eles.
+- **Padronagem.** Clicar numa célula a preenche com um elemento; clicar de novo esvazia. Funciona por toque também.
+- Primeira forma de elemento: paralelogramo de lado igual à altura da célula, inclinado para a direita, com o vértice superior direito e o inferior esquerdo encostando nos cantos opostos da célula.
+- `js/elementos.js` — as formas, em funções puras.
+- A padronagem guarda coluna e linha, não pixels: sobrevive ao redimensionamento da janela e à mudança de densidade. Células que caem fora da grelha atual somem do desenho mas ficam no estado, e voltam ao retomar a densidade.
 - Realce da célula sob o cursor, anunciando que ali cabe interação. Aceso pelo tipo de ponteiro, não por `:hover`, para não deixar rastro em toque nem em laptop com tela sensível.
 - Rolagem sobre a tela também controla a densidade, para cima mais denso. Roda de mouse e trackpad são distinguidos: entalhe de roda vale um passo, deltas de trackpad acumulam até fechar um passo, e a sobra é descartada após 250 ms parado.
 - `js/grelha.js` — geometria em funções puras, sem acesso ao DOM.
