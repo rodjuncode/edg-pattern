@@ -13,7 +13,7 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 - Grelha sobre a área de desenho, com células na proporção do arquivo de logo (1,2023), lida do `viewBox`.
 - Interruptor de exibição da grelha e dois botões de densidade (2 a 48 colunas), com leitura numérica entre eles.
 - **Padronagem.** Clicar numa célula a preenche com um elemento; clicar de novo esvazia. Funciona por toque também.
-- Duas formas de elemento: paralelogramo de lado igual à altura da célula, inclinado para a direita, e o seu espelho horizontal. Ao preencher, a forma é sorteada entre as duas e guardada na célula.
+- Quatro formas de elemento, todas partindo do mesmo quadrado de lado igual à altura da célula: paralelogramo inclinado para a direita, o seu espelho, quadrado encostado à esquerda e quadrado encostado à direita. Ao preencher, a forma é sorteada entre as quatro e guardada na célula.
 - Elementos desenhados **vazados**, só contorno — acompanha a linha fina da folha de referência.
 - `js/elementos.js` — as formas, em funções puras.
 - A padronagem guarda coluna e linha, não pixels: sobrevive ao redimensionamento da janela e à mudança de densidade. Células que caem fora da grelha atual somem do desenho mas ficam no estado, e voltam ao retomar a densidade.

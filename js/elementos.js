@@ -8,11 +8,21 @@
 
 const FORMA_PARALELOGRAMO_DIREITA = 'paralelogramo-direita';
 const FORMA_PARALELOGRAMO_ESQUERDA = 'paralelogramo-esquerda';
+const FORMA_QUADRADO_ESQUERDA = 'quadrado-esquerda';
+const FORMA_QUADRADO_DIREITA = 'quadrado-direita';
 
-/** Todas as formas que o sorteio pode devolver. */
+/**
+ * Todas as formas que o sorteio pode devolver.
+ *
+ * São dois pares de espelhos. Todas partem do mesmo quadrado de lado igual à
+ * altura da célula: os paralelogramos o inclinam, os quadrados o encostam numa
+ * das laterais. Em qualquer caso sobra a mesma faixa de W − H do lado oposto.
+ */
 const FORMAS = [
   FORMA_PARALELOGRAMO_DIREITA,
-  FORMA_PARALELOGRAMO_ESQUERDA
+  FORMA_PARALELOGRAMO_ESQUERDA,
+  FORMA_QUADRADO_ESQUERDA,
+  FORMA_QUADRADO_DIREITA
 ];
 
 /**
@@ -66,11 +76,45 @@ function paralelogramoEsquerdaParaPath(c) {
          'Z';
 }
 
+/**
+ * Quadrado regular, ângulos retos, lado igual à altura da célula, encostado
+ * na lateral esquerda.
+ *
+ *   (x, y) ──── (x+H, y)
+ *      │            │        Como a célula é mais larga que alta, sobra
+ *      │            │        uma faixa de W − H à direita — a mesma medida
+ *   (x, y+H) ── (x+H, y+H)   da inclinação dos paralelogramos.
+ */
+function quadradoEsquerdaParaPath(c) {
+  const { x, y, altura: h } = c;
+
+  return 'M' + arredondar(x) + ' ' + arredondar(y) +
+         'H' + arredondar(x + h) +
+         'V' + arredondar(y + h) +
+         'H' + arredondar(x) +
+         'Z';
+}
+
+/** O mesmo quadrado, encostado na lateral direita. A faixa sobra à esquerda. */
+function quadradoDireitaParaPath(c) {
+  const { x, y, largura: w, altura: h } = c;
+
+  return 'M' + arredondar(x + w - h) + ' ' + arredondar(y) +
+         'H' + arredondar(x + w) +
+         'V' + arredondar(y + h) +
+         'H' + arredondar(x + w - h) +
+         'Z';
+}
+
 /** Despacha para a forma pedida. Cresce conforme novas formas entrarem. */
 function elementoParaPath(celula, forma) {
   switch (forma) {
     case FORMA_PARALELOGRAMO_ESQUERDA:
       return paralelogramoEsquerdaParaPath(celula);
+    case FORMA_QUADRADO_ESQUERDA:
+      return quadradoEsquerdaParaPath(celula);
+    case FORMA_QUADRADO_DIREITA:
+      return quadradoDireitaParaPath(celula);
     case FORMA_PARALELOGRAMO_DIREITA:
     default:
       return paralelogramoDireitaParaPath(celula);

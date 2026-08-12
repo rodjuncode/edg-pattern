@@ -55,6 +55,22 @@ Mesma construção, refletida no eixo vertical central da célula. Os cantos de 
 
 A inclinação tem o mesmo módulo, sentido contrário. Misturadas pelo sorteio, as duas formas produzem uma textura de losangos e ziguezagues.
 
+### Formas 3 e 4 — quadrado, encostado à esquerda ou à direita
+
+Quadrado regular, ângulos retos, lado igual à altura da célula. Encosta no topo e na base, e numa das laterais:
+
+```
+forma 3                      forma 4
+(0,0) ──── (H,0)  ┆          ┆  (W−H,0) ──── (W,0)
+  │          │    ┆ sobra    ┆     │            │
+  │          │    ┆ W−H      ┆     │            │
+(0,H) ──── (H,H)  ┆          ┆  (W−H,H) ──── (W,H)
+```
+
+A faixa que sobra do lado oposto mede `W − H` — a mesma medida da inclinação dos paralelogramos. As quatro formas partem do mesmo quadrado de lado `H`: duas o inclinam, duas o deslocam.
+
+**O que emerge da mistura:** um quadrado encostado à direita e outro à esquerda em células vizinhas se encontram exatamente na divisa, formando um par contínuo. É o único encontro sem fresta entre elementos horizontais — os paralelogramos nunca se tocam na horizontal, e quadrado com paralelogramo tampouco.
+
 *A definir* — as demais formas.
 
 ### Traço
