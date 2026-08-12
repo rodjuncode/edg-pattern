@@ -24,9 +24,6 @@ const estado = {
   preenchidas: new Map()
 };
 
-// Forma usada ao preencher. Por ora só existe uma.
-let formaAtual = FORMA_PARALELOGRAMO;
-
 // Sobra de rolagem ainda não convertida em passo, e quando ela foi atualizada.
 let acumuladoRolagem = 0;
 let instanteUltimaRolagem = -Infinity;
@@ -124,11 +121,12 @@ function aoClicar(ev) {
   if (estado.preenchidas.has(chave)) {
     estado.preenchidas.delete(chave);
   } else {
-    estado.preenchidas.set(chave, formaAtual);
+    // A forma é sorteada aqui, uma vez, e guardada. Sortear no desenho faria
+    // a padronagem se reembaralhar a cada resize ou mudança de densidade.
+    estado.preenchidas.set(chave, sortearForma());
   }
 
   desenharPadronagem();
-  atualizarRealce(); // o realce troca de cor conforme a célula ficou cheia ou vazia
 }
 
 function desenharPadronagem() {
@@ -191,8 +189,6 @@ function atualizarRealce() {
   el.realce.setAttribute('width', celula.largura);
   el.realce.setAttribute('height', celula.altura);
   el.realce.classList.remove('oculto');
-  el.realce.classList.toggle('sobre-preenchida',
-    estado.preenchidas.has(chaveDe(celula.coluna, celula.linha)));
 }
 
 /**

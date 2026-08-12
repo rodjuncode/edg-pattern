@@ -12,6 +12,12 @@
 
   --grelha-cor: var(--edg-marrom);
   --grelha-opacidade: .38;
+
+  /* Traço do elemento. Fixo em pixels, não proporcional à célula: assim a
+     linha continua legível na densidade máxima, onde a célula fica pequena.
+     Um pouco mais grosso que a grelha (1px), para o desenho se destacar do
+     guia. Provável parâmetro de interface mais adiante. */
+  --elemento-traco: 1.5px;
 }
 
 * { box-sizing: border-box; }
@@ -133,10 +139,14 @@ body {
   cursor: pointer; /* clicar preenche a célula */
 }
 
-/* A padronagem em si. Castanho chapado sobre o mostarda — o par da marca. */
+/* A padronagem em si: vazada, só contorno. Segue a folha de referência, onde
+   a malha de cubos é desenhada em linha fina sem massa. */
 #padronagem {
-  fill: var(--edg-marrom);
-  stroke: none;
+  fill: none;
+  stroke: var(--edg-marrom);
+  stroke-width: var(--elemento-traco);
+  stroke-linejoin: miter;
+  /* Sem crispEdges: as arestas são inclinadas e ficariam serrilhadas. */
 }
 
 #grelha {
@@ -154,13 +164,6 @@ body {
   fill-opacity: .14;
   pointer-events: none; /* não rouba o wheel nem o pointermove da tela */
   shape-rendering: crispEdges;
-}
-
-/* Sobre uma célula já preenchida, escurecer não adiantaria: castanho a 14%
-   sobre castanho não se vê. Clareia em vez de escurecer. */
-#realce.sobre-preenchida {
-  fill: #fff;
-  fill-opacity: .16;
 }
 
 /* Quem controla a visibilidade é o JS, pelo tipo de ponteiro do evento.

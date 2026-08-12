@@ -14,7 +14,13 @@ Consequência para a arquitetura: o módulo é uma função que recebe parâmetr
 
 A padronagem se compõe **preenchendo células da grelha**. Cada célula preenchida recebe um *elemento*, que pode assumir formas diferentes. Clicar preenche; clicar de novo esvazia.
 
-### Forma 1 — paralelogramo
+Os elementos são **vazados** — só contorno, sem massa. Acompanha a folha de referência, onde a malha de cubos é desenhada em linha fina.
+
+Ao preencher, a forma é **sorteada** entre as disponíveis. O sorteio acontece uma vez, no clique, e o resultado fica guardado na célula: redesenhar não pode re-sortear, ou a padronagem se reembaralharia a cada resize.
+
+> Pendência de reprodutibilidade. O sorteio usa `Math.random()`, sem semente. Isso conflita com a regra de versionamento (README): mesma entrada, mesmo resultado. Enquanto não houver semente visível e editável, uma padronagem só é reproduzível se for salva, não se for redigitada. Ver seção 6.
+
+### Forma 1 — paralelogramo, inclinado para a direita
 
 Um quadrado do tamanho da **altura da célula**, inclinado para a direita até que dois vértices encostem em cantos opostos da célula. Numa célula de largura `W`, altura `H` e origem no canto superior esquerdo:
 
@@ -35,7 +41,25 @@ A inclinação resulta em `W − H`. Como a célula tem a proporção do logo, i
 
 Se algum dia a intenção for fundir vizinhos horizontais, o lado do elemento precisa medir `W`, não `H`.
 
+### Forma 2 — a mesma, espelhada na horizontal
+
+Mesma construção, refletida no eixo vertical central da célula. Os cantos de apoio passam a ser os opostos:
+
+```
+(0, 0) ──── (H, 0)          lado superior, comprimento H,
+   ╱           ╱             vértice esquerdo no canto superior esquerdo
+  ╱           ╱
+(W−H, H) ── (W, H)          lado inferior, comprimento H,
+                             vértice direito no canto inferior direito
+```
+
+A inclinação tem o mesmo módulo, sentido contrário. Misturadas pelo sorteio, as duas formas produzem uma textura de losangos e ziguezagues.
+
 *A definir* — as demais formas.
+
+### Traço
+
+Fixo em 1,5 px (`--elemento-traco`), não proporcional à célula: assim a linha continua legível na densidade máxima, onde a célula fica pequena. Um pouco mais grosso que a grelha (1 px), para o desenho se destacar do guia. Provável parâmetro de interface mais adiante.
 
 ## 3. Regra de repetição
 
@@ -72,7 +96,17 @@ Roda de mouse e trackpad chegam como o mesmo evento `wheel`, mas são dispositiv
 
 ## 6. Aleatoriedade
 
-*A definir* — se há geração aleatória, se a semente é visível/editável, se o mesmo resultado precisa ser reproduzível.
+**Parcialmente decidido.** Há sorteio: a forma do elemento é escolhida ao acaso no momento em que a célula é preenchida, e guardada. O desenho, uma vez feito, é estável.
+
+*A definir* — **a semente.** Hoje o sorteio usa `Math.random()`, sem semente. A regra de versionamento (ver [README](README.md#versionamento)) promete que os mesmos parâmetros devolvem o mesmo resultado dentro de uma MAJOR, e sem semente essa promessa não se sustenta: refazer os mesmos cliques dá outra padronagem.
+
+Três saídas possíveis, em ordem de esforço:
+
+1. Aceitar que a padronagem só é reproduzível pelo arquivo exportado, e afrouxar a regra de versionamento para excluir o sorteio.
+2. Semente interna, gravada junto com a padronagem ao exportar.
+3. Semente visível e editável na interface, virando parâmetro de projeto — o designer anota o número e recupera o resultado.
+
+A terceira é a que torna a ferramenta utilizável em aula, onde alguém pode querer retomar um resultado meses depois.
 
 ## 7. Interface
 
