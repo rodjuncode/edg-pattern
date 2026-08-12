@@ -627,12 +627,14 @@ function redesenhar() {
   const { width, height } = el.tela.getBoundingClientRect();
   if (width < 1 || height < 1) return;
 
-  // 1 unidade do viewBox = 1 pixel de tela, sem arredondar: a largura do
-  // elemento é fracionária, e arredondar aqui faria o SVG escalar de leve —
-  // o bastante para a espessura sair de 1px e o crispEdges perder o efeito.
-  const l = Math.round(width * 100) / 100;
-  const a = Math.round(height * 100) / 100;
-  el.tela.setAttribute('viewBox', `0 0 ${l} ${a}`);
+  // 1 unidade do viewBox = 1 pixel de tela, exatamente. Nada de arredondar:
+  // a largura do elemento é fracionária, e qualquer arredondamento aqui deixa
+  // uma escala de 1,000000x entre unidade e pixel. Escala diferente de 1 é o
+  // que torna a rasterização sensível a onde a camada foi desenhada, e era
+  // uma das fontes do tremor durante a animação.
+  const l = width;
+  const a = height;
+  el.tela.setAttribute('viewBox', '0 0 ' + l + ' ' + a);
 
   // A geometria é calculada sempre, mesmo com a grelha apagada: a padronagem
   // precisa dela para se desenhar, e o clique para saber onde caiu. Apagar a

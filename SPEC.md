@@ -144,6 +144,18 @@ A duração vive em `--virada-duracao`, no CSS, e o JS a lê de lá — mudar o 
 
 **Consequência estrutural:** a padronagem passou a ser um `<path>` por célula, dentro de um `<g>`, em vez de um caminho único. Não há como animar uma célula sozinha dentro de um caminho compartilhado. Os nós são reaproveitados entre redesenhos, para que um redimensionamento não corte animações em curso.
 
+**Consequência para quem for mexer no código:** durante a virada, o `d` no DOM fica meia animação atrás do estado — o estado já tem a forma nova, o desenho ainda mostra a antiga até o meio do giro. Qualquer leitura do desenho precisa esperar, ou forçar movimento reduzido.
+
+### A grelha não pode tremer
+
+A grelha e o realce são desenhados com `shape-rendering: geometricPrecision`, **não** `crispEdges`.
+
+`crispEdges` encaixa cada linha no pixel mais próximo, e esse encaixe depende de como a camada foi rasterizada. Ao animar uma célula, o navegador promove a camada e depois a descarta; a cada troca o arredondamento pode virar para o pixel vizinho, e a linha pula — era um tremor visível na grelha durante a animação.
+
+Pela mesma razão, o `viewBox` da tela usa a largura e a altura exatas do elemento, sem arredondar. Qualquer arredondamento deixa uma escala de 1,000000x entre unidade e pixel, e escala diferente de 1 é justamente o que torna a rasterização sensível a onde a camada foi desenhada.
+
+O custo é a linha ficar um fio mais suave, com peso que varia levemente conforme a posição subpixel. Numa grelha de apoio a 38% de opacidade, a troca compensa: melhor uma linha macia e parada do que uma nítida que salta.
+
 ### Traço
 
 Fixo em 1,5 px (`--elemento-traco`), não proporcional à célula: assim a linha continua legível na densidade máxima, onde a célula fica pequena. Um pouco mais grosso que a grelha (1 px), para o desenho se destacar do guia. Provável parâmetro de interface mais adiante.

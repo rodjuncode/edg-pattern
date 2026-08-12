@@ -200,7 +200,15 @@ body {
   stroke: var(--grelha-cor);
   stroke-opacity: var(--grelha-opacidade);
   stroke-width: 1;
-  shape-rendering: crispEdges; /* linhas retas sem meio-pixel borrado */
+
+  /* Sem crispEdges, de propósito.
+     Ele encaixava cada linha no pixel mais próximo, e esse encaixe depende de
+     como a camada foi rasterizada. Ao animar uma célula, o navegador promove a
+     camada e depois a descarta; a cada troca o arredondamento pode virar para o
+     pixel vizinho, e a linha pula — era o tremor visível durante a animação.
+     Com antialiasing a linha fica um fio mais suave, porém estável em qualquer
+     rasterização. Numa grelha de apoio a 38% de opacidade, a troca compensa. */
+  shape-rendering: geometricPrecision;
 }
 
 /* Célula sob o cursor. Só anuncia que ali cabe uma interação — por isso um
@@ -209,7 +217,7 @@ body {
   fill: var(--edg-marrom);
   fill-opacity: .14;
   pointer-events: none; /* não rouba o wheel nem o pointermove da tela */
-  shape-rendering: crispEdges;
+  shape-rendering: geometricPrecision; /* mesma razão da grelha */
 }
 
 /* Quem controla a visibilidade é o JS, pelo tipo de ponteiro do evento.

@@ -8,6 +8,7 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 
 ### Corrigido
 
+- A grelha tremia durante as animações. `shape-rendering: crispEdges` encaixava cada linha no pixel, e esse encaixe muda quando o navegador promove e descarta a camada para animar. Grelha e realce passaram a `geometricPrecision`, e o `viewBox` da tela passou a usar as medidas exatas do elemento, sem o arredondamento que deixava uma escala diferente de 1.
 - O arquivo exportado saía com espaço vazio quando o estado guardava células fora da grelha atual — restos de uma densidade maior ou de uma janela maior. Elas não são desenhadas, mas entravam na medida da caixa e a esticavam. Agora só contam as células que a grelha desenha, e o diálogo avisa quantas ficaram de fora.
 
 ### Adicionado
