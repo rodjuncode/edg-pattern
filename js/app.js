@@ -16,6 +16,7 @@ const ROLAGEM_PAUSA   = 250; // ms parado que encerram o gesto e descartam a sob
 
 const estado = {
   grelhaVisivel: true,
+  borracha: false,
   densidade: 12,
 
   // A padronagem. Chave "coluna,linha" para o nome da forma que preenche a
@@ -51,7 +52,10 @@ function iniciar() {
 
   el.marca.innerHTML = LOGO_SVG;
 
+  el.btBorracha = document.getElementById('bt-borracha');
+
   el.btGrelha.addEventListener('click', alternarGrelha);
+  el.btBorracha.addEventListener('click', alternarBorracha);
   el.btMais.addEventListener('click', () => mudarDensidade(+1));
   el.btMenos.addEventListener('click', () => mudarDensidade(-1));
 
@@ -88,6 +92,11 @@ function alternarGrelha() {
   redesenhar();
 }
 
+function alternarBorracha() {
+  estado.borracha = !estado.borracha;
+  sincronizarControles();
+}
+
 function mudarDensidade(passo) {
   const nova = limitar(estado.densidade + passo, DENSIDADE_MIN, DENSIDADE_MAX);
   if (nova === estado.densidade) return;
@@ -112,21 +121,77 @@ function chaveDe(coluna, linha) {
   return coluna + ',' + linha;
 }
 
-/** Clicar preenche a célula; clicar de novo esvazia. */
+function formaEm(coluna, linha) {
+  return estado.preenchidas.get(chaveDe(coluna, linha));
+}
+
+/**
+ * As formas que a célula pode receber, dado o que está diretamente acima dela.
+ *
+ * Só a vizinha de cima manda. A de baixo não restringe a escolha — ela é
+ * ajustada depois, por propagarAbaixo.
+ */
+function permitidasEm(coluna, linha) {
+  return formasCompativeisAbaixo(formaEm(coluna, linha - 1));
+}
+
+/**
+ * Um clique na tela. Três comportamentos, conforme o modo e o estado da célula:
+ *
+ *   borracha ligada  → esvazia
+ *   célula vazia     → preenche com uma forma sorteada entre as permitidas
+ *   célula ocupada   → cicla para a próxima forma permitida
+ */
 function aoClicar(ev) {
   const celula = celulaDoEvento(ev);
   if (!celula) return;
 
-  const chave = chaveDe(celula.coluna, celula.linha);
-  if (estado.preenchidas.has(chave)) {
+  const { coluna, linha } = celula;
+  const chave = chaveDe(coluna, linha);
+  const atual = estado.preenchidas.get(chave);
+
+  if (estado.borracha) {
+    if (!atual) return;
     estado.preenchidas.delete(chave);
+    // Esvaziar não quebra encaixe nenhum: célula vazia não impõe restrição.
+  } else if (atual) {
+    estado.preenchidas.set(chave, proximaForma(atual, permitidasEm(coluna, linha)));
+    propagarAbaixo(coluna, linha);
   } else {
-    // A forma é sorteada aqui, uma vez, e guardada. Sortear no desenho faria
-    // a padronagem se reembaralhar a cada resize ou mudança de densidade.
-    estado.preenchidas.set(chave, sortearForma());
+    // Sorteia aqui, uma vez, e guarda. Sortear no desenho faria a padronagem
+    // se reembaralhar a cada resize ou mudança de densidade.
+    estado.preenchidas.set(chave, sortearForma(null, permitidasEm(coluna, linha)));
+    propagarAbaixo(coluna, linha);
   }
 
   desenharPadronagem();
+}
+
+/**
+ * Restaura o encaixe da coluna, descendo a partir da célula alterada.
+ *
+ * Se a célula de baixo ficou incompatível, sorteia para ela uma forma que
+ * encaixe. E como isso é, de novo, alterar uma célula ocupada, a verificação
+ * continua descendo — parar no primeiro nível deixaria a junta seguinte
+ * quebrada, e a continuidade do fluxo é justamente o que a regra protege.
+ *
+ * Termina sozinho: para na primeira célula vazia, ou quando o sorteio calha
+ * numa forma que já encaixa com a de baixo.
+ */
+function propagarAbaixo(coluna, linha) {
+  let l = linha;
+
+  while (true) {
+    const acima = formaEm(coluna, l);
+    const abaixo = formaEm(coluna, l + 1);
+
+    if (!acima || !abaixo) return;
+    if (saoCompativeis(acima, abaixo)) return;
+
+    estado.preenchidas.set(chaveDe(coluna, l + 1),
+      sortearForma(null, formasCompativeisAbaixo(acima)));
+    l++;
+  }
 }
 
 function desenharPadronagem() {
@@ -230,6 +295,8 @@ function aoRolar(ev) {
 /** Deixa a interface refletindo o estado — inclusive para leitores de tela. */
 function sincronizarControles() {
   el.btGrelha.setAttribute('aria-pressed', String(estado.grelhaVisivel));
+  el.btBorracha.setAttribute('aria-pressed', String(estado.borracha));
+  el.tela.classList.toggle('apagando', estado.borracha);
   el.leitura.textContent = estado.densidade;
   el.btMenos.disabled = estado.densidade <= DENSIDADE_MIN;
   el.btMais.disabled = estado.densidade >= DENSIDADE_MAX;

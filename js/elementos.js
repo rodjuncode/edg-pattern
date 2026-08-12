@@ -12,18 +12,79 @@ const FORMA_QUADRADO_ESQUERDA = 'quadrado-esquerda';
 const FORMA_QUADRADO_DIREITA = 'quadrado-direita';
 
 /**
- * Todas as formas que o sorteio pode devolver.
+ * Todas as formas, **na ordem da ciclagem**.
  *
  * São dois pares de espelhos. Todas partem do mesmo quadrado de lado igual à
  * altura da célula: os paralelogramos o inclinam, os quadrados o encostam numa
  * das laterais. Em qualquer caso sobra a mesma faixa de W − H do lado oposto.
+ *
+ * A ordem não é decorativa: clicar numa célula ocupada avança nesta lista.
  */
 const FORMAS = [
-  FORMA_PARALELOGRAMO_DIREITA,
-  FORMA_PARALELOGRAMO_ESQUERDA,
-  FORMA_QUADRADO_ESQUERDA,
-  FORMA_QUADRADO_DIREITA
+  FORMA_PARALELOGRAMO_ESQUERDA,  // torto para a esquerda
+  FORMA_QUADRADO_ESQUERDA,       // reto à esquerda
+  FORMA_PARALELOGRAMO_DIREITA,   // torto para a direita
+  FORMA_QUADRADO_DIREITA         // reto à direita
 ];
+
+/**
+ * Onde cada forma encosta, em cima e embaixo.
+ *
+ * Toda forma ocupa a altura inteira da célula, mas só uma faixa de largura H
+ * dentro dos W disponíveis. Estas âncoras dizem de que lado essa faixa está,
+ * em cada uma das duas arestas horizontais:
+ *
+ *   torto p/ direita   topo à direita,   base à esquerda   (a inclinação vira)
+ *   torto p/ esquerda  topo à esquerda,  base à direita
+ *   reto à esquerda    topo à esquerda,  base à esquerda   (não vira)
+ *   reto à direita     topo à direita,   base à direita
+ *
+ * É daqui que sai a regra de encaixe vertical, em vez de uma tabela de pares:
+ * dois elementos empilhados formam fluxo contínuo quando a base do de cima cai
+ * do mesmo lado que o topo do de baixo. Uma forma nova entra no sistema apenas
+ * declarando suas duas âncoras.
+ */
+const ANCORAS = {
+  [FORMA_PARALELOGRAMO_DIREITA]:  { topo: 'direita',  base: 'esquerda' },
+  [FORMA_PARALELOGRAMO_ESQUERDA]: { topo: 'esquerda', base: 'direita'  },
+  [FORMA_QUADRADO_ESQUERDA]:      { topo: 'esquerda', base: 'esquerda' },
+  [FORMA_QUADRADO_DIREITA]:       { topo: 'direita',  base: 'direita'  }
+};
+
+/** Duas formas empilhadas formam fluxo contínuo? */
+function saoCompativeis(formaAcima, formaAbaixo) {
+  if (!formaAcima || !formaAbaixo) return true; // célula vazia não restringe
+  return ANCORAS[formaAcima].base === ANCORAS[formaAbaixo].topo;
+}
+
+/**
+ * Que formas podem ficar logo abaixo de `formaAcima`.
+ *
+ * Sem nada acima, todas valem. Com algo acima, sempre sobram duas: uma torta e
+ * uma reta, as que abrem pelo mesmo lado onde a de cima terminou.
+ */
+function formasCompativeisAbaixo(formaAcima) {
+  if (!formaAcima) return FORMAS.slice();
+  return FORMAS.filter(f => saoCompativeis(formaAcima, f));
+}
+
+/**
+ * A próxima forma na ciclagem, respeitando o que é permitido.
+ *
+ * Anda na ordem de FORMAS a partir da atual e devolve a primeira permitida.
+ * Se a atual for a única permitida, devolve ela mesma — clicar não faz nada,
+ * que é melhor do que quebrar o encaixe.
+ */
+function proximaForma(formaAtual, permitidas) {
+  const lista = permitidas && permitidas.length ? permitidas : FORMAS;
+  const inicio = FORMAS.indexOf(formaAtual);
+
+  for (let passo = 1; passo <= FORMAS.length; passo++) {
+    const candidata = FORMAS[(inicio + passo) % FORMAS.length];
+    if (lista.indexOf(candidata) >= 0) return candidata;
+  }
+  return formaAtual;
+}
 
 /**
  * Paralelogramo inclinado para a direita.
@@ -122,15 +183,16 @@ function elementoParaPath(celula, forma) {
 }
 
 /**
- * Sorteia uma das formas.
+ * Sorteia uma forma, opcionalmente dentro de uma lista restrita.
  *
  * O gerador entra por parâmetro em vez de chamar Math.random direto: assim a
  * função continua pura e o teste consegue fixar o resultado. `Math.min` guarda
  * contra um gerador que devolva exatamente 1, que estouraria o índice.
  */
-function sortearForma(aleatorio) {
+function sortearForma(aleatorio, permitidas) {
+  const lista = permitidas && permitidas.length ? permitidas : FORMAS;
   const r = (aleatorio || Math.random)();
-  return FORMAS[Math.min(FORMAS.length - 1, Math.floor(r * FORMAS.length))];
+  return lista[Math.min(lista.length - 1, Math.floor(r * lista.length))];
 }
 
 /**

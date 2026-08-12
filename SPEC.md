@@ -12,7 +12,19 @@ Gerar padronagens vetoriais alinhadas à identidade da Especialização em Desig
 
 Consequência para a arquitetura: o módulo é uma função que recebe parâmetros e devolve geometria. Trocar o desenho é trocar essa função, não trocar um arquivo.
 
-A padronagem se compõe **preenchendo células da grelha**. Cada célula preenchida recebe um *elemento*, que pode assumir formas diferentes. Clicar preenche; clicar de novo esvazia.
+A padronagem se compõe **preenchendo células da grelha**. Cada célula preenchida recebe um *elemento*, que pode assumir formas diferentes.
+
+**O clique tem três comportamentos**, conforme o modo e o estado da célula:
+
+| Situação | O que acontece |
+|---|---|
+| Célula vazia | Preenche com uma forma **sorteada** entre as permitidas |
+| Célula ocupada | **Cicla** para a próxima forma permitida |
+| Borracha ligada | **Esvazia** a célula |
+
+A borracha é um modo, ligado e desligado por um botão na barra. Com ela ativa, clicar numa célula vazia não faz nada.
+
+A ordem da ciclagem é: torto à esquerda → reto à esquerda → torto à direita → reto à direita → e volta ao início.
 
 Os elementos são **vazados** — só contorno, sem massa. Acompanha a folha de referência, onde a malha de cubos é desenhada em linha fina.
 
@@ -73,6 +85,44 @@ A faixa que sobra do lado oposto mede `W − H` — a mesma medida da inclinaç�
 
 *A definir* — as demais formas.
 
+### Encaixe vertical
+
+Uma célula preenchida **restringe** o que pode entrar na célula diretamente abaixo dela, de modo que os dois elementos formem um fluxo contínuo:
+
+| Elemento acima | Admite abaixo |
+|---|---|
+| torto à direita | torto à esquerda, reto à esquerda |
+| torto à esquerda | torto à direita, reto à direita |
+| reto à direita | torto à direita, reto à direita |
+| reto à esquerda | torto à esquerda, reto à esquerda |
+
+**Estas quatro regras não são arbitrárias, e não estão tabeladas no código.** Cada forma ocupa a largura `H` dentro dos `W` da célula, encostada num dos lados em cada aresta horizontal:
+
+| Forma | Aresta superior | Aresta inferior |
+|---|---|---|
+| torto à direita | direita | esquerda |
+| torto à esquerda | esquerda | direita |
+| reto à esquerda | esquerda | esquerda |
+| reto à direita | direita | direita |
+
+A regra é simplesmente **a aresta inferior de cima cair do mesmo lado que a aresta superior de baixo**. As quatro linhas da primeira tabela saem daí. No código isso vive em `ANCORAS`, e uma forma nova entra no sistema apenas declarando suas duas âncoras.
+
+Consequências:
+
+- Só a vizinha **de cima** restringe. Célula vazia acima não impõe nada, e todas as quatro valem.
+- Havendo restrição, sobram sempre **duas** formas — uma torta e uma reta. A ciclagem alterna entre elas.
+- A relação **não é simétrica**: torto à direita admite reto à esquerda abaixo, mas reto à esquerda não admite torto à direita. Dos 16 pares ordenados, 8 encaixam.
+
+### Propagação para baixo
+
+Ao alterar o elemento de uma célula ocupada, se a célula diretamente abaixo estiver ocupada e tiver ficado incompatível, ela recebe uma forma nova, sorteada entre as compatíveis com a de cima.
+
+**A verificação continua descendo.** Trocar a de baixo é, de novo, alterar uma célula ocupada — parar no primeiro nível deixaria a junta seguinte quebrada, e a continuidade do fluxo é justamente o que a regra protege. A propagação termina sozinha: para na primeira célula vazia, ou quando o sorteio calha numa forma que já encaixava.
+
+Um buraco na coluna interrompe a propagação — o que está abaixo dele não é afetado.
+
+Esvaziar com a borracha não dispara propagação: célula vazia não impõe restrição a ninguém.
+
 ### Traço
 
 Fixo em 1,5 px (`--elemento-traco`), não proporcional à célula: assim a linha continua legível na densidade máxima, onde a célula fica pequena. Um pouco mais grosso que a grelha (1 px), para o desenho se destacar do guia. Provável parâmetro de interface mais adiante.
@@ -91,6 +141,7 @@ Como a proporção é fixa, não cabe um número inteiro de células nas duas di
 |---|---|---|---|
 | Exibir grelha | interruptor | ligado / desligado | ligado |
 | Densidade | dois botões com leitura numérica, **ou rolagem sobre a tela** | 2 a 48 colunas | 12 |
+| Borracha | interruptor | ligada / desligada | desligada |
 
 Mexer na densidade com a grelha apagada reacende a grelha — o gesto não teria retorno visível de outro modo.
 

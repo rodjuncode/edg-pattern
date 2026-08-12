@@ -139,6 +139,10 @@ body {
   cursor: pointer; /* clicar preenche a célula */
 }
 
+/* Modo borracha. O cursor confirma o modo no lugar onde a mão está, sem
+   obrigar a conferir a barra a cada clique. */
+.tela.apagando { cursor: crosshair; }
+
 /* A padronagem em si: vazada, só contorno. Segue a folha de referência, onde
    a malha de cubos é desenhada em linha fina sem massa. */
 #padronagem {

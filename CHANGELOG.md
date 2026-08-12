@@ -12,7 +12,10 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 - Barra de ferramentas com 1/24 da largura da tela, logo monocromático no topo. Vira bandeja no rodapé abaixo de 640 px.
 - Grelha sobre a área de desenho, com células na proporção do arquivo de logo (1,2023), lida do `viewBox`.
 - Interruptor de exibição da grelha e dois botões de densidade (2 a 48 colunas), com leitura numérica entre eles.
-- **Padronagem.** Clicar numa célula a preenche com um elemento; clicar de novo esvazia. Funciona por toque também.
+- **Padronagem.** Clicar numa célula vazia a preenche com uma forma sorteada; clicar de novo cicla entre as formas. Funciona por toque também.
+- **Modo borracha**, com botão na barra: com ele ativo, clicar esvazia a célula. O cursor muda enquanto está ligado.
+- **Encaixe vertical.** Um elemento restringe o que pode entrar na célula abaixo, para que os dois formem fluxo contínuo. A regra sai das âncoras de cada forma — em que lado ela encosta em cada aresta horizontal — e não de uma tabela de pares.
+- **Propagação para baixo.** Alterar um elemento reajusta a célula de baixo se ela ficou incompatível, e a verificação continua descendo pela coluna até encontrar uma junta que já encaixe ou uma célula vazia.
 - Quatro formas de elemento, todas partindo do mesmo quadrado de lado igual à altura da célula: paralelogramo inclinado para a direita, o seu espelho, quadrado encostado à esquerda e quadrado encostado à direita. Ao preencher, a forma é sorteada entre as quatro e guardada na célula.
 - Elementos desenhados **vazados**, só contorno — acompanha a linha fina da folha de referência.
 - `js/elementos.js` — as formas, em funções puras.
