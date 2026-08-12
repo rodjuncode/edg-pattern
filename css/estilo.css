@@ -140,6 +140,20 @@ body {
   shape-rendering: crispEdges; /* linhas retas sem meio-pixel borrado */
 }
 
+/* Célula sob o cursor. Só anuncia que ali cabe uma interação — por isso um
+   preenchimento discreto, e não uma borda, que competiria com a grelha. */
+#realce {
+  fill: var(--edg-marrom);
+  fill-opacity: .14;
+  pointer-events: none; /* não rouba o wheel nem o pointermove da tela */
+  shape-rendering: crispEdges;
+}
+
+/* Quem controla a visibilidade é o JS, pelo tipo de ponteiro do evento.
+   Não dá para delegar a :hover: num laptop com tela sensível o CSS acha que
+   há mouse, e o toque deixaria o realce grudado. */
+#realce.oculto { display: none; }
+
 /* -------------------------------------------------------------- mobile ---- */
 /* A barra vira bandeja no rodapé: alcance do polegar, e a tela mantém a
    largura inteira, que é o que importa numa viewport estreita. */

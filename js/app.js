@@ -23,6 +23,13 @@ const estado = {
 let acumuladoRolagem = 0;
 let instanteUltimaRolagem = -Infinity;
 
+// Última grelha calculada. Guardada para que o realce siga o cursor sem
+// precisar recalcular tudo, e para reposicioná-lo quando a densidade muda.
+let grelhaAtual = null;
+
+// Posição do cursor na tela. `ativo` só vale para mouse de verdade — ver aoMover.
+const ponteiro = { x: 0, y: 0, ativo: false };
+
 // Elementos, resolvidos uma vez só.
 const el = {};
 
@@ -30,6 +37,7 @@ function iniciar() {
   el.marca = document.getElementById('marca');
   el.tela = document.getElementById('tela');
   el.grelha = document.getElementById('grelha');
+  el.realce = document.getElementById('realce');
   el.btGrelha = document.getElementById('bt-grelha');
   el.btMais = document.getElementById('bt-densidade-mais');
   el.btMenos = document.getElementById('bt-densidade-menos');
@@ -44,6 +52,16 @@ function iniciar() {
   // passive:false é obrigatório — sem ele o preventDefault é ignorado e o
   // navegador trata a rolagem como navegação (recuar página, no trackpad).
   el.tela.addEventListener('wheel', aoRolar, { passive: false });
+
+  // Realce da célula sob o cursor.
+  el.tela.addEventListener('pointermove', aoMover);
+  el.tela.addEventListener('pointerdown', aoMover);
+  el.tela.addEventListener('pointerleave', soltarPonteiro);
+  el.tela.addEventListener('pointercancel', soltarPonteiro);
+
+  // A janela perder o foco não dispara pointerleave. Sem isto, o realce fica
+  // aceso enquanto o usuário está em outro programa.
+  window.addEventListener('blur', soltarPonteiro);
 
   // ResizeObserver em vez de window.resize: pega também a mudança de largura
   // causada pela barra lateral virar bandeja, que o resize da janela não
@@ -71,6 +89,63 @@ function mudarDensidade(passo) {
 
   sincronizarControles();
   redesenhar();
+}
+
+/**
+ * Move o realce para a célula sob o cursor.
+ *
+ * Só mouse acende o realce. Tocar a tela num celular gera um `pointermove` de
+ * `pointerType: 'touch'` e, logo depois, eventos de mouse emulados — é assim
+ * que nasce o realce fantasma, que fica aceso no lugar do último toque porque
+ * nunca vem um `pointerleave` para apagá-lo.
+ *
+ * Filtrar por `pointerType` resolve os dois casos de uma vez, inclusive o do
+ * laptop com tela sensível, onde `@media (hover: hover)` acerta que existe
+ * mouse e mesmo assim o dedo deixaria rastro.
+ */
+function aoMover(ev) {
+  if (ev.pointerType !== 'mouse') {
+    soltarPonteiro();  // dedo ou caneta apagam qualquer realce herdado
+    return;
+  }
+
+  const r = el.tela.getBoundingClientRect();
+  ponteiro.x = ev.clientX - r.left;
+  ponteiro.y = ev.clientY - r.top;
+  ponteiro.ativo = true;
+  atualizarRealce();
+}
+
+function soltarPonteiro() {
+  ponteiro.ativo = false;
+  atualizarRealce();
+}
+
+/**
+ * Posiciona o retângulo de realce, ou o esconde.
+ *
+ * Chamado também no redesenho: mudar a densidade com o cursor parado tem de
+ * mover o realce para a célula nova sob aquele mesmo ponto.
+ */
+function atualizarRealce() {
+  // Sem grelha visível não há "as demais" de que a célula se diferencie —
+  // um retângulo solto no vazio não comunicaria interação, confundiria.
+  if (!ponteiro.ativo || !estado.grelhaVisivel || !grelhaAtual) {
+    el.realce.classList.add('oculto');
+    return;
+  }
+
+  const celula = celulaEm(grelhaAtual, ponteiro.x, ponteiro.y);
+  if (!celula) {
+    el.realce.classList.add('oculto');
+    return;
+  }
+
+  el.realce.setAttribute('x', celula.x);
+  el.realce.setAttribute('y', celula.y);
+  el.realce.setAttribute('width', celula.largura);
+  el.realce.setAttribute('height', celula.altura);
+  el.realce.classList.remove('oculto');
 }
 
 /**
@@ -130,17 +205,20 @@ function redesenhar() {
 
   if (!estado.grelhaVisivel) {
     el.grelha.setAttribute('d', '');
+    grelhaAtual = null;
+    atualizarRealce();
     return;
   }
 
-  const g = calcularGrelha({
+  grelhaAtual = calcularGrelha({
     largura: l,
     altura: a,
     densidade: estado.densidade,
     proporcao: LOGO_PROPORCAO
   });
 
-  el.grelha.setAttribute('d', grelhaParaPath(g));
+  el.grelha.setAttribute('d', grelhaParaPath(grelhaAtual));
+  atualizarRealce();
 }
 
 function limitar(n, min, max) {

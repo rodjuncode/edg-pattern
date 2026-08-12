@@ -59,6 +59,31 @@ function grelhaParaPath(g) {
   return partes.join('');
 }
 
+/**
+ * Descobre qual célula da grelha contém o ponto (x, y), em coordenadas da tela.
+ *
+ * Devolve a célula com posição e tamanho já resolvidos, prontos para desenhar,
+ * ou `null` se o ponto cair fora. Fora acontece de verdade: as linhas
+ * transbordam a área visível, então o ponto pode estar num pedaço de célula
+ * que existe na conta mas não na tela.
+ */
+function celulaEm(g, x, y) {
+  const coluna = Math.floor(x / g.larguraCelula);
+  const linha = Math.floor((y - g.deslocY) / g.alturaCelula);
+
+  if (coluna < 0 || coluna >= g.colunas) return null;
+  if (linha < 0 || linha >= g.linhas) return null;
+
+  return {
+    coluna,
+    linha,
+    x: arredondar(coluna * g.larguraCelula),
+    y: arredondar(g.deslocY + linha * g.alturaCelula),
+    largura: arredondar(g.larguraCelula),
+    altura: arredondar(g.alturaCelula)
+  };
+}
+
 /** Três casas bastam em coordenada de tela e encurtam bastante o SVG exportado. */
 function arredondar(n) {
   return Math.round(n * 1000) / 1000;

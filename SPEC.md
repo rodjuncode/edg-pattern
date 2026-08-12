@@ -61,6 +61,19 @@ A largura tem trava nas duas pontas (`clamp(52px, 100vw/24, 88px)`): abaixo de ~
 
 **Mobile** (até 640 px) — a barra vira bandeja no rodapé, na horizontal, ao alcance do polegar. A tela mantém a largura inteira, que é o que importa numa viewport estreita. Só a direção do flex muda; a marcação é a mesma.
 
+### Realce da célula
+
+A célula sob o cursor recebe um preenchimento discreto, para anunciar que ali cabe uma interação. Preenchimento e não borda: uma borda competiria com as linhas da grelha. O retângulo é desenhado **antes** da grelha, para que as linhas fiquem por cima.
+
+Só aparece com a grelha visível — sem "as demais", não há o que diferenciar, e um retângulo solto no vazio confundiria em vez de comunicar.
+
+**Não aparece em toque.** O realce é aceso pelo tipo de ponteiro do evento (`pointerType === 'mouse'`), não por `:hover`. Duas razões:
+
+- Navegadores móveis emulam eventos de mouse depois de um toque, e nunca mandam o `pointerleave` correspondente — o realce ficaria aceso no lugar do último toque.
+- Em laptop com tela sensível, `@media (hover: hover)` acerta que existe mouse, então o CSS sozinho não distinguiria o dedo.
+
+Dedo e caneta apagam qualquer realce herdado. Também apagam: sair da área, `pointercancel` e a janela perder o foco — este último porque não dispara `pointerleave`, e o realce ficaria aceso com o usuário em outro programa.
+
 *A definir* — organização dos controles que ainda virão.
 
 ## 8. Exportação
