@@ -53,9 +53,23 @@ function iniciar() {
   el.marca.innerHTML = LOGO_SVG;
 
   el.btBorracha = document.getElementById('bt-borracha');
+  el.btExportar = document.getElementById('bt-exportar');
+  el.dialogo = document.getElementById('dialogo');
+  el.form = document.getElementById('form-exportar');
+  el.opcoesPng = document.getElementById('opcoes-png');
+  el.valorDimensao = document.getElementById('valor-dimensao');
+  el.resumo = document.getElementById('resumo');
+  el.btConfirmar = document.getElementById('bt-confirmar');
 
   el.btGrelha.addEventListener('click', alternarGrelha);
   el.btBorracha.addEventListener('click', alternarBorracha);
+
+  el.btExportar.addEventListener('click', abrirExportacao);
+  document.getElementById('bt-cancelar')
+    .addEventListener('click', function () { el.dialogo.close(); });
+  el.form.addEventListener('change', atualizarResumo);
+  el.valorDimensao.addEventListener('input', atualizarResumo);
+  el.form.addEventListener('submit', aoConfirmarExportacao);
   el.btMais.addEventListener('click', () => mudarDensidade(+1));
   el.btMenos.addEventListener('click', () => mudarDensidade(-1));
 
@@ -197,6 +211,121 @@ function propagarAbaixo(coluna, linha) {
 function desenharPadronagem() {
   if (!grelhaAtual) return;
   el.padronagem.setAttribute('d', padronagemParaPath(grelhaAtual, estado.preenchidas));
+  el.btExportar.disabled = estado.preenchidas.size === 0;
+}
+
+/* ------------------------------------------------------------ exportação -- */
+
+/**
+ * Monta o SVG de exportação a partir do estado atual.
+ *
+ * Usa o tamanho de célula e a espessura que estão na tela agora: o arquivo
+ * exportado é literalmente o que se vê, recortado. A espessura vem do CSS
+ * computado, não de uma constante, para acompanhar --elemento-traco.
+ */
+function montarSVG() {
+  if (!grelhaAtual || estado.preenchidas.size === 0) return null;
+
+  const traco = parseFloat(getComputedStyle(el.padronagem).strokeWidth) || 1.5;
+  return padronagemParaSVG(
+    estado.preenchidas, grelhaAtual.larguraCelula, grelhaAtual.alturaCelula, traco);
+}
+
+function abrirExportacao() {
+  if (estado.preenchidas.size === 0) return;
+  atualizarResumo();
+  el.dialogo.showModal();
+}
+
+function formatoEscolhido() {
+  return el.form.elements.formato.value;
+}
+
+/** Dimensões finais do arquivo, conforme formato e medida informada. */
+function dimensoesDaExportacao(svg) {
+  if (formatoEscolhido() === 'svg') {
+    return { largura: svg.largura, altura: svg.altura };
+  }
+  const valor = parseInt(el.valorDimensao.value, 10);
+  if (!isFinite(valor) || valor < 1) return null;
+  return dimensaoComplementar(
+    el.form.elements.dimensao.value, valor, svg.largura, svg.altura);
+}
+
+function atualizarResumo() {
+  const png = formatoEscolhido() === 'png';
+  el.opcoesPng.hidden = !png;
+
+  const svg = montarSVG();
+  if (!svg) return;
+
+  const dim = dimensoesDaExportacao(svg);
+  el.resumo.classList.remove('alerta');
+  el.btConfirmar.disabled = false;
+
+  if (!dim) {
+    el.resumo.textContent = 'Informe uma medida em pixels.';
+    el.resumo.classList.add('alerta');
+    el.btConfirmar.disabled = true;
+    return;
+  }
+
+  // O canvas tem teto: acima disso o navegador devolve imagem em branco, sem
+  // avisar. Melhor barrar aqui do que entregar um arquivo vazio.
+  const excedeLado = dim.largura > 16000 || dim.altura > 16000;
+  const excedeArea = dim.largura * dim.altura > 100000000;
+
+  if (png && (excedeLado || excedeArea)) {
+    el.resumo.textContent = dim.largura + ' × ' + dim.altura + ' px — grande demais. ' +
+      'O navegador não consegue gerar um PNG deste tamanho; reduza a medida ou exporte em SVG.';
+    el.resumo.classList.add('alerta');
+    el.btConfirmar.disabled = true;
+    return;
+  }
+
+  const celulas = estado.preenchidas.size;
+  const quantas = celulas + (celulas === 1 ? ' célula' : ' células');
+
+  el.resumo.textContent = png
+    ? dim.largura + ' × ' + dim.altura + ' px, fundo transparente. Recorte de ' + quantas + '.'
+    : dim.largura + ' × ' + dim.altura + ' px de tamanho natural, escalável sem perda. ' +
+      'Recorte de ' + quantas + '.';
+}
+
+function aoConfirmarExportacao(ev) {
+  // O submit fecharia o diálogo por conta própria (method="dialog"); segurar
+  // aqui deixa o fechamento para depois de o arquivo ter sido gerado, e
+  // permite manter o diálogo aberto para mostrar um erro.
+  ev.preventDefault();
+
+  const svg = montarSVG();
+  if (!svg) return;
+
+  const dim = dimensoesDaExportacao(svg);
+  if (!dim) return;
+
+  if (formatoEscolhido() === 'svg') {
+    descarregar(new Blob([svg.texto], { type: 'image/svg+xml;charset=utf-8' }),
+      'padronagem-edg.svg');
+    el.dialogo.close();
+    return;
+  }
+
+  el.btConfirmar.disabled = true;
+  el.resumo.textContent = 'Gerando…';
+
+  svgParaPNG(svg.texto, dim.largura, dim.altura)
+    .then(function (blob) {
+      descarregar(blob, 'padronagem-edg-' + dim.largura + 'x' + dim.altura + '.png');
+      el.dialogo.close();
+      el.btConfirmar.disabled = false;
+    })
+    .catch(function (erro) {
+      el.resumo.textContent = 'Não foi possível gerar o PNG: ' + erro.message +
+        '. Tente uma medida menor, ou exporte em SVG.';
+      el.resumo.classList.add('alerta');
+      el.btConfirmar.disabled = false;
+    });
 }
 
 /**

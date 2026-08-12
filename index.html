@@ -66,6 +66,19 @@
       </svg>
     </button>
   </div>
+
+  <!-- Sempre no fim da barra: embaixo no vertical, à direita na bandeja. -->
+  <div class="ferramentas ao-fim" role="group" aria-label="Exportação">
+    <button type="button" class="bt" id="bt-exportar"
+            title="Exportar a padronagem" aria-label="Exportar a padronagem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3v11"/>
+        <path d="M7.5 10 12 14.5 16.5 10"/>
+        <path d="M4 17.5v2A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-2"/>
+      </svg>
+    </button>
+  </div>
 </aside>
 
 <!-- Área de desenho. Ocupa todo o resto da viewport.
@@ -81,9 +94,54 @@
   <path id="grelha" d=""/>
 </svg>
 
+<!-- Diálogo de exportação. <dialog> nativo: dá foco preso, Esc para fechar e
+     fundo modal sem uma linha de JS, e funciona em file://. -->
+<dialog id="dialogo" class="dialogo" aria-labelledby="dialogo-titulo">
+  <form id="form-exportar" method="dialog">
+    <h2 id="dialogo-titulo">Exportar padronagem</h2>
+
+    <fieldset>
+      <legend>Formato</legend>
+      <label class="opcao">
+        <input type="radio" name="formato" value="svg" checked>
+        <span><b>SVG</b> — vetor, escalável, abre no Illustrator</span>
+      </label>
+      <label class="opcao">
+        <input type="radio" name="formato" value="png">
+        <span><b>PNG</b> — imagem, fundo transparente</span>
+      </label>
+    </fieldset>
+
+    <fieldset id="opcoes-png" hidden>
+      <legend>Definir pelo…</legend>
+      <div class="linha">
+        <label class="opcao compacta">
+          <input type="radio" name="dimensao" value="largura" checked>
+          <span>Largura</span>
+        </label>
+        <label class="opcao compacta">
+          <input type="radio" name="dimensao" value="altura">
+          <span>Altura</span>
+        </label>
+        <input type="number" id="valor-dimensao" value="2000" min="16" max="16000" step="1"
+               aria-label="Medida em pixels">
+        <span class="unidade">px</span>
+      </div>
+    </fieldset>
+
+    <p class="resumo" id="resumo" role="status"></p>
+
+    <menu>
+      <button type="button" class="bt-texto" id="bt-cancelar">Cancelar</button>
+      <button type="submit" class="bt-texto primario" id="bt-confirmar" value="exportar">Exportar</button>
+    </menu>
+  </form>
+</dialog>
+
 <script src="js/logo.js"></script>
 <script src="js/grelha.js"></script>
 <script src="js/elementos.js"></script>
+<script src="js/exportar.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -29,6 +29,8 @@ index.html                interface — barra de ferramentas e área de desenho
 css/estilo.css            estilos
 js/logo.js                GERADO a partir de assets/logo/logo.svg
 js/grelha.js              geometria da grelha — funções puras, não tocam no DOM
+js/elementos.js           as formas do elemento e as regras de encaixe
+js/exportar.js            recorte, montagem do SVG e conversão para PNG
 js/app.js                 estado e ligação com a interface
 
 assets/

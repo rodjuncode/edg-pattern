@@ -22,6 +22,9 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 - A padronagem guarda coluna e linha, não pixels: sobrevive ao redimensionamento da janela e à mudança de densidade. Células que caem fora da grelha atual somem do desenho mas ficam no estado, e voltam ao retomar a densidade.
 - Realce da célula sob o cursor, anunciando que ali cabe interação. Aceso pelo tipo de ponteiro, não por `:hover`, para não deixar rastro em toque nem em laptop com tela sensível.
 - Rolagem sobre a tela também controla a densidade, para cima mais denso. Roda de mouse e trackpad são distinguidos: entalhe de roda vale um passo, deltas de trackpad acumulam até fechar um passo, e a sobra é descartada após 250 ms parado.
+- **Exportação.** Botão de download no fim da barra, com diálogo perguntando SVG ou PNG. O arquivo contém apenas a caixa das células ocupadas, sem grelha e sem fundo, com o traço em preto.
+- No PNG, o usuário define a largura ou a altura em pixels e a outra medida sai da proporção. Fundo transparente. O diálogo mostra as medidas finais e barra tamanhos que excedem o limite do canvas do navegador.
+- `js/exportar.js` — recorte, montagem do SVG e conversão para PNG.
 - `js/grelha.js` — geometria em funções puras, sem acesso ao DOM.
 - `js/logo.js`, gerado a partir de `assets/logo/logo.svg`.
 - `LICENSE` — MIT para código e documentação, com exclusão explícita da marca e da tipografia.

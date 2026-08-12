@@ -202,8 +202,34 @@ Dedo e caneta apagam qualquer realce herdado. Também apagam: sair da área, `po
 
 ## 8. Exportação
 
-- **PNG** — download. *A definir*: resolução, se o tamanho é escolhido pelo usuário, se o fundo é transparente ou pintado.
-- **SVG** — cópia do código para a área de transferência. *A definir*: SVG único ou com `<pattern>` reutilizável, tratamento de `viewBox`, se o código sai comentado/legível para uso didático.
+Botão de download **no fim da barra** — embaixo no layout vertical, à direita na bandeja. Fica desabilitado enquanto não houver nenhuma célula preenchida. Ao clicar, abre um diálogo que pergunta o formato.
+
+### O recorte
+
+O arquivo contém **apenas a caixa das células ocupadas**. Sem grelha, sem realce, sem fundo.
+
+A caixa é a das *células*, não a da geometria desenhada — um quadrado encostado à direita numa célula de borda deixa a faixa `W − H` vazia dentro do arquivo. Foi assim que ficou combinado, e é o comportamento previsível: o recorte segue a grelha, não o traço.
+
+Acrescenta-se **meia espessura de traço em cada borda**. O contorno em SVG é centrado no caminho, então metade dele fica fora do retângulo da célula; um recorte exato cortaria ao meio a linha externa de todo o desenho, e num PNG ampliado isso apareceria como meia linha ao redor da imagem inteira.
+
+### Formatos
+
+| | |
+|---|---|
+| **SVG** | Vetor, no tamanho natural do recorte, escalável sem perda. Hexadecimal literal, sem `currentColor` nem `var()` — abre no Illustrator e no Inkscape. |
+| **PNG** | Fundo transparente. O usuário define **a largura OU a altura** em pixels; a outra sai da proporção. |
+
+O diálogo mostra as medidas finais antes de exportar, e quantas células entraram no recorte.
+
+**Cor:** preta, por ora. Está isolada em `EXPORT_COR`.
+
+**Escala:** o arquivo sai no tamanho em que a padronagem está na tela — mesmo tamanho de célula, mesma espessura de traço. O PNG é isso reescalado para a medida pedida.
+
+### Limite do canvas
+
+Acima de 16000 px de lado, ou de 100 milhões de pixels de área, o navegador devolve uma imagem em branco sem avisar. O diálogo detecta antes, explica e bloqueia o botão, sugerindo reduzir a medida ou exportar em SVG.
+
+*A definir* — cópia do código SVG para a área de transferência, que estava no escopo original e ainda não existe; e se o SVG deve sair com `<pattern>` reutilizável em vez de caminhos soltos.
 
 ## 9. Fora de escopo
 
