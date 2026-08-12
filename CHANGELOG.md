@@ -18,6 +18,10 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 - Interruptor de exibição da grelha e dois botões de densidade (2 a 48 colunas), com leitura numérica entre eles.
 - **Padronagem.** Clicar numa célula vazia a preenche com uma forma sorteada; clicar de novo cicla entre as formas. Funciona por toque também.
 - **Modo borracha**, com botão na barra: com ele ativo, clicar esvazia a célula. O cursor muda enquanto está ligado.
+- **Micro-interação de virada.** Mudar o conteúdo de uma célula gira a forma no eixo vertical, com o desenho trocando no instante em que ela fica invisível. O eixo do giro é o centro da célula, para que espelhar leia como espelho. Célula que nasce entra abrindo; borracha continua instantânea.
+- Na cascata, cada elo vira 55 ms depois do anterior, na ordem em que a propagação desceu.
+- Respeita `prefers-reduced-motion`: com movimento reduzido, a troca é direta.
+- A padronagem passou a ser um `<path>` por célula dentro de um `<g>` — sem isso não há como animar uma célula sozinha. Os nós são reaproveitados entre redesenhos.
 - **Encaixe vertical.** Um elemento restringe o que pode entrar na célula abaixo, para que os dois formem fluxo contínuo. A regra sai das âncoras de cada forma — em que lado ela encosta em cada aresta horizontal — e não de uma tabela de pares.
 - **Propagação para baixo.** Alterar um elemento reajusta a célula de baixo se ela ficou incompatível, e a verificação continua descendo pela coluna até encontrar uma junta que já encaixe ou uma célula vazia.
 - Quatro formas de elemento, todas partindo do mesmo quadrado de lado igual à altura da célula: paralelogramo inclinado para a direita, o seu espelho, quadrado encostado à esquerda e quadrado encostado à direita. Ao preencher, a forma é sorteada entre as quatro e guardada na célula.

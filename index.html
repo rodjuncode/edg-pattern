@@ -89,7 +89,9 @@
   <!-- Ordem importa. A padronagem é o desenho; o realce responde ao cursor e
        precisa ser visível mesmo sobre uma célula já preenchida; a grelha é
        guia de construção e fica por cima de tudo. -->
-  <path id="padronagem" d=""/>
+  <!-- Um <path> por célula, e não um caminho único: é o que permite animar
+       uma célula sozinha. Os nós são reaproveitados entre redesenhos. -->
+  <g id="padronagem"></g>
   <rect id="realce" class="oculto" x="0" y="0" width="0" height="0"/>
   <path id="grelha" d=""/>
 </svg>

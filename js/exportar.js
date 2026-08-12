@@ -63,22 +63,28 @@ function padronagemParaSVG(preenchidas, larguraCelula, alturaCelula, traco) {
   const altura = arredondar(lim.linhas * alturaCelula + traco);
   const margem = arredondar(-traco / 2);
 
-  const partes = [];
+  // Desloca os índices para a caixa começar em (0,0) e monta uma grelha do
+  // tamanho exato do recorte. Com isso a exportação reusa padronagemParaPath,
+  // em vez de repetir aqui a travessia das células.
+  const deslocadas = new Map();
   preenchidas.forEach(function (forma, chave) {
     const p = chave.split(',');
-    partes.push(elementoParaPath({
-      x: (Number(p[0]) - lim.minColuna) * larguraCelula,
-      y: (Number(p[1]) - lim.minLinha) * alturaCelula,
-      largura: larguraCelula,
-      altura: alturaCelula
-    }, forma));
+    deslocadas.set((Number(p[0]) - lim.minColuna) + ',' + (Number(p[1]) - lim.minLinha), forma);
   });
+
+  const grelhaDoRecorte = {
+    colunas: lim.colunas,
+    linhas: lim.linhas,
+    larguraCelula: larguraCelula,
+    alturaCelula: alturaCelula,
+    deslocY: 0
+  };
 
   const texto =
     '<svg xmlns="http://www.w3.org/2000/svg"' +
     ' width="' + largura + '" height="' + altura + '"' +
     ' viewBox="' + margem + ' ' + margem + ' ' + largura + ' ' + altura + '">\n' +
-    '  <path d="' + partes.join('') + '"\n' +
+    '  <path d="' + padronagemParaPath(grelhaDoRecorte, deslocadas) + '"\n' +
     '        fill="none" stroke="' + EXPORT_COR + '"' +
     ' stroke-width="' + arredondar(traco) + '" stroke-linejoin="miter"/>\n' +
     '</svg>\n';

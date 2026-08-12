@@ -123,6 +123,27 @@ Um buraco na coluna interrompe a propagação — o que está abaixo dele não �
 
 Esvaziar com a borracha não dispara propagação: célula vazia não impõe restrição a ninguém.
 
+### A virada
+
+Toda mudança de conteúdo de uma célula acontece com um giro no eixo vertical: `scaleX` de 1 → 0 → 1, em 260 ms. **O desenho é trocado no instante em que a escala passa por zero** e a forma está invisível — é isso que faz a mudança parecer uma virada, e não uma substituição.
+
+O eixo do giro fica no **centro da célula**, não no centro da própria forma. Um quadrado encostado à esquerda virando para a direita precisa girar em torno do eixo da célula para ler como espelhamento; girando no próprio centro, ele saltaria de lado.
+
+| Situação | Movimento |
+|---|---|
+| Célula que nasce | Abre a partir do eixo — meia animação, `scaleX` de 0 a 1 |
+| Célula que muda de forma | Giro completo, com troca no meio |
+| Célula apagada | Sai na hora, sem animação — borracha que hesita não parece borracha |
+| Densidade e redimensionamento | Sem animação: animar tudo de uma vez seria ruído, não informação |
+
+**Cascata.** Quando a mudança desce a coluna, cada elo começa **55 ms depois** do anterior, na ordem em que a propagação desceu. É o escalonamento que mostra que uma peça empurrou a outra, em vez de todas mudarem juntas por acaso.
+
+**Movimento reduzido.** Quem tem `prefers-reduced-motion: reduce` no sistema recebe a troca direta, sem giro.
+
+A duração vive em `--virada-duracao`, no CSS, e o JS a lê de lá — mudar o ritmo é mexer num número só.
+
+**Consequência estrutural:** a padronagem passou a ser um `<path>` por célula, dentro de um `<g>`, em vez de um caminho único. Não há como animar uma célula sozinha dentro de um caminho compartilhado. Os nós são reaproveitados entre redesenhos, para que um redimensionamento não corte animações em curso.
+
 ### Traço
 
 Fixo em 1,5 px (`--elemento-traco`), não proporcional à célula: assim a linha continua legível na densidade máxima, onde a célula fica pequena. Um pouco mais grosso que a grelha (1 px), para o desenho se destacar do guia. Provável parâmetro de interface mais adiante.

@@ -6,6 +6,14 @@
 const DENSIDADE_MIN = 2;
 const DENSIDADE_MAX = 48;
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// Atraso entre um elo e o seguinte, quando a mudança desce a coluna em cascata.
+// Curto o bastante para ler como um movimento só, longo o bastante para a
+// ordem ficar visível — é ela que conta a história de que uma peça empurrou
+// a outra.
+const ATRASO_CASCATA = 55;
+
 // Rolagem. Roda de mouse e trackpad são dispositivos diferentes disfarçados de
 // um só evento: a roda manda um deltaY grande por entalhe (~100), o trackpad
 // manda uma enxurrada de valores pequenos. Tratados igual, um gesto de trackpad
@@ -35,6 +43,10 @@ let grelhaAtual = null;
 
 // Posição do cursor na tela. `ativo` só vale para mouse de verdade — ver aoMover.
 const ponteiro = { x: 0, y: 0, ativo: false };
+
+// Um <path> por célula preenchida, reaproveitado entre redesenhos. Sem isto,
+// recriar os nós a cada resize cortaria animações pela metade.
+const nosPorCelula = new Map();
 
 // Elementos, resolvidos uma vez só.
 const el = {};
@@ -168,17 +180,29 @@ function aoClicar(ev) {
     if (!atual) return;
     estado.preenchidas.delete(chave);
     // Esvaziar não quebra encaixe nenhum: célula vazia não impõe restrição.
-  } else if (atual) {
+    // Sai na hora, sem animação — borracha que hesita não parece borracha.
+    desenharPadronagem();
+    return;
+  }
+
+  if (atual) {
     estado.preenchidas.set(chave, proximaForma(atual, permitidasEm(coluna, linha)));
-    propagarAbaixo(coluna, linha);
   } else {
     // Sorteia aqui, uma vez, e guarda. Sortear no desenho faria a padronagem
     // se reembaralhar a cada resize ou mudança de densidade.
     estado.preenchidas.set(chave, sortearForma(null, permitidasEm(coluna, linha)));
-    propagarAbaixo(coluna, linha);
   }
 
-  desenharPadronagem();
+  // A célula tocada vira primeiro; cada elo da cascata entra um pouco depois,
+  // na ordem em que desceu. O escalonamento é o que mostra que uma peça
+  // empurrou a outra, em vez de todas mudarem juntas por acaso.
+  const animacoes = new Map();
+  animacoes.set(chave, 0);
+  propagarAbaixo(coluna, linha).forEach(function (chaveAbaixo, i) {
+    animacoes.set(chaveAbaixo, (i + 1) * ATRASO_CASCATA);
+  });
+
+  desenharPadronagem(animacoes);
 }
 
 /**
@@ -191,32 +215,176 @@ function aoClicar(ev) {
  *
  * Termina sozinho: para na primeira célula vazia, ou quando o sorteio calha
  * numa forma que já encaixa com a de baixo.
+ *
+ * Devolve as chaves alteradas **na ordem em que desceu** — é essa ordem que a
+ * animação usa para escalonar as viradas.
  */
 function propagarAbaixo(coluna, linha) {
+  const alteradas = [];
   let l = linha;
 
   while (true) {
     const acima = formaEm(coluna, l);
     const abaixo = formaEm(coluna, l + 1);
 
-    if (!acima || !abaixo) return;
-    if (saoCompativeis(acima, abaixo)) return;
+    if (!acima || !abaixo) return alteradas;
+    if (saoCompativeis(acima, abaixo)) return alteradas;
 
-    estado.preenchidas.set(chaveDe(coluna, l + 1),
-      sortearForma(null, formasCompativeisAbaixo(acima)));
+    const chaveAbaixo = chaveDe(coluna, l + 1);
+    estado.preenchidas.set(chaveAbaixo, sortearForma(null, formasCompativeisAbaixo(acima)));
+    alteradas.push(chaveAbaixo);
     l++;
   }
 }
 
-function desenharPadronagem() {
+/**
+ * Põe a tela de acordo com o estado.
+ *
+ * `animacoes` é um Map de chave de célula para o atraso, em milissegundos, com
+ * que a virada daquela célula deve começar. Sem ele, a troca é direta — é o
+ * caso do redimensionamento e da mudança de densidade, onde animar cada célula
+ * seria ruído, não informação.
+ */
+function desenharPadronagem(animacoes) {
   if (!grelhaAtual) return;
 
-  const caminho = padronagemParaPath(grelhaAtual, estado.preenchidas);
-  el.padronagem.setAttribute('d', caminho);
+  const visiveis = celulasDentroDaGrelha(grelhaAtual, estado.preenchidas);
 
-  // Sem traço na tela não há o que exportar — mesmo que o estado guarde
+  // Some quem foi apagado ou saiu da grelha.
+  nosPorCelula.forEach(function (no, chave) {
+    if (!visiveis.has(chave)) {
+      cancelarVirada(no);
+      no.remove();
+      nosPorCelula.delete(chave);
+    }
+  });
+
+  visiveis.forEach(function (forma, chave) {
+    const partes = chave.split(',');
+    const celula = celulaPorIndice(grelhaAtual, Number(partes[0]), Number(partes[1]));
+    const caminho = elementoParaPath(celula, forma);
+    const atraso = animacoes && animacoes.has(chave) ? animacoes.get(chave) : null;
+
+    let no = nosPorCelula.get(chave);
+
+    if (!no) {
+      no = document.createElementNS(SVG_NS, 'path');
+      no.setAttribute('d', caminho);
+      posicionarEixo(no, celula);
+      el.padronagem.appendChild(no);
+      nosPorCelula.set(chave, no);
+      if (atraso !== null) animar(no, 'entrando', atraso);
+      return;
+    }
+
+    posicionarEixo(no, celula);
+    if (atraso !== null) virar(no, caminho, atraso);
+    else { cancelarVirada(no); no.setAttribute('d', caminho); }
+  });
+
+  // Sem nada desenhado não há o que exportar, mesmo que o estado guarde
   // células fora da grelha atual.
-  el.btExportar.disabled = caminho === '';
+  el.btExportar.disabled = visiveis.size === 0;
+}
+
+/** Põe o eixo do giro no centro da célula, em unidades do viewBox. */
+function posicionarEixo(no, celula) {
+  no.style.transformOrigin =
+    (celula.x + celula.largura / 2) + 'px ' + (celula.y + celula.altura / 2) + 'px';
+}
+
+/* ------------------------------------------------------ micro-interação -- */
+
+function preferSemMovimento() {
+  return window.matchMedia &&
+         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** Quanto dura a virada, lido do CSS para não haver dois números a manter. */
+function duracaoDaVirada() {
+  const valor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--virada-duracao').trim();
+  const n = parseFloat(valor);
+  if (!isFinite(n)) return 260;
+  return valor.indexOf('ms') >= 0 ? n : n * 1000;
+}
+
+/**
+ * Interrompe uma virada em curso e devolve o nó ao estado neutro.
+ *
+ * Necessário para o clique repetido: sem cancelar, o temporizador da virada
+ * anterior trocaria o desenho no meio da nova e a célula acabaria mostrando a
+ * forma errada.
+ */
+function cancelarVirada(no) {
+  if (no.temporizadores) no.temporizadores.forEach(clearTimeout);
+  no.temporizadores = null;
+  no.classList.remove('virando', 'entrando');
+}
+
+/**
+ * Aplica a classe da animação, agora ou depois do atraso.
+ *
+ * Com atraso zero a classe entra de forma síncrona, e não por temporizador:
+ * um `setTimeout(0)` cede o turno, o navegador chega a pintar um quadro com a
+ * forma em tamanho cheio, e a célula que nasce dá um piscão antes de encolher.
+ */
+function agendarClasse(no, classe, atraso, temporizadores) {
+  const comecar = function () {
+    void no.getBoundingClientRect(); // força o reinício da animação
+    no.classList.add(classe);
+  };
+
+  if (atraso > 0) temporizadores.push(setTimeout(comecar, atraso));
+  else comecar();
+}
+
+/** Roda uma das animações do CSS, depois de um atraso. */
+function animar(no, classe, atraso) {
+  cancelarVirada(no);
+  if (preferSemMovimento()) return;
+
+  const duracao = duracaoDaVirada();
+  const temporizadores = [];
+  agendarClasse(no, classe, atraso, temporizadores);
+
+  temporizadores.push(setTimeout(function () {
+    no.classList.remove(classe);
+    no.temporizadores = null;
+  }, atraso + duracao + 20));
+
+  no.temporizadores = temporizadores;
+}
+
+/**
+ * Vira a célula e troca o desenho no meio do giro.
+ *
+ * A troca acontece no instante em que scaleX chega a zero e a forma está
+ * invisível: é isso que faz a mudança parecer uma virada, e não uma
+ * substituição. Com movimento reduzido, troca na hora e não anima.
+ */
+function virar(no, novoCaminho, atraso) {
+  cancelarVirada(no);
+
+  if (preferSemMovimento()) {
+    no.setAttribute('d', novoCaminho);
+    return;
+  }
+
+  const duracao = duracaoDaVirada();
+  const temporizadores = [];
+  agendarClasse(no, 'virando', atraso, temporizadores);
+
+  temporizadores.push(setTimeout(function () {
+    no.setAttribute('d', novoCaminho);
+  }, atraso + duracao / 2));
+
+  temporizadores.push(setTimeout(function () {
+    no.classList.remove('virando');
+    no.temporizadores = null;
+  }, atraso + duracao + 20));
+
+  no.temporizadores = temporizadores;
 }
 
 /* ------------------------------------------------------------ exportação -- */

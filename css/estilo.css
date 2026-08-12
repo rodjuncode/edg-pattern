@@ -18,6 +18,10 @@
      Um pouco mais grosso que a grelha (1px), para o desenho se destacar do
      guia. Provável parâmetro de interface mais adiante. */
   --elemento-traco: 1.5px;
+
+  /* Duração da virada, ida e volta. O JS lê este valor para saber quando
+     trocar o desenho — mudar aqui muda os dois lados juntos. */
+  --virada-duracao: 260ms;
 }
 
 * { box-sizing: border-box; }
@@ -148,13 +152,47 @@ body {
 .tela.apagando { cursor: crosshair; }
 
 /* A padronagem em si: vazada, só contorno. Segue a folha de referência, onde
-   a malha de cubos é desenhada em linha fina sem massa. */
+   a malha de cubos é desenhada em linha fina sem massa.
+   Os filhos herdam daqui — cada célula é um <path> sem estilo próprio. */
 #padronagem {
   fill: none;
   stroke: var(--edg-marrom);
   stroke-width: var(--elemento-traco);
   stroke-linejoin: miter;
   /* Sem crispEdges: as arestas são inclinadas e ficariam serrilhadas. */
+}
+
+/* --- micro-interação: a virada --- */
+
+/* O eixo do giro é o centro da CÉLULA, posto pelo JS em unidades do viewBox,
+   não o centro da própria forma. Um quadrado encostado à esquerda virando para
+   a direita precisa girar em torno do eixo da célula para ler como espelho;
+   girando no próprio centro, ele pularia de lado. */
+#padronagem path {
+  transform-box: view-box;
+}
+
+#padronagem path.virando  { animation: virar  var(--virada-duracao) ease-in-out; }
+#padronagem path.entrando { animation: entrar calc(var(--virada-duracao) / 2) ease-out; }
+
+/* Passa por scaleX(0) — a espessura no meio do giro vai a zero e a forma
+   some por um instante. É nesse instante que o JS troca o desenho. */
+@keyframes virar {
+  0%, 100% { transform: scaleX(1); }
+  50%      { transform: scaleX(0); }
+}
+
+/* Célula que nasce não tem o que virar: entra abrindo a partir do eixo. */
+@keyframes entrar {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Quem pediu menos movimento no sistema recebe a troca direta. O JS lê a mesma
+   preferência e aplica o desenho na hora, sem esperar o meio da animação. */
+@media (prefers-reduced-motion: reduce) {
+  #padronagem path.virando,
+  #padronagem path.entrando { animation: none; }
 }
 
 #grelha {
