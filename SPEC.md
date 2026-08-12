@@ -27,9 +27,19 @@ Como a proporção é fixa, não cabe um número inteiro de células nas duas di
 | Parâmetro | Tipo de controle | Faixa / opções | Padrão |
 |---|---|---|---|
 | Exibir grelha | interruptor | ligado / desligado | ligado |
-| Densidade | dois botões, com leitura numérica | 2 a 48 colunas | 12 |
+| Densidade | dois botões com leitura numérica, **ou rolagem sobre a tela** | 2 a 48 colunas | 12 |
 
 Mexer na densidade com a grelha apagada reacende a grelha — o gesto não teria retorno visível de outro modo.
+
+### Rolagem
+
+Rolar sobre a área de desenho muda a densidade. Para cima, mais denso — mesmo sentido do botão `+`, que fica acima do `−`.
+
+Roda de mouse e trackpad chegam como o mesmo evento `wheel`, mas são dispositivos diferentes, e tratá-los igual faria um gesto de trackpad varrer a faixa inteira. A distinção é feita assim:
+
+- **Dispositivo discreto — um evento, um passo.** Ou o `deltaMode` não é pixel (linhas ou páginas só vêm de roda ou tecla; trackpad sempre reporta pixels), ou o valor em pixels é grande o bastante para ser entalhe de roda (≥ 50).
+- **Trackpad** — acumula os deltas pequenos até somarem 26 px, e aí anda um passo.
+- **Gestos são independentes.** Após 250 ms parado, a sobra não convertida é descartada, para não somar com o gesto seguinte.
 
 *A definir* — os demais controles.
 

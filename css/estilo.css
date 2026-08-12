@@ -20,6 +20,10 @@ html, body {
   height: 100%;
   margin: 0;
   overflow: hidden; /* a tela ocupa a viewport; nada rola */
+
+  /* A rolagem sobre a tela é um controle, não navegação. Sem isto, um gesto
+     horizontal de trackpad dispara "voltar" e o trabalho se perde. */
+  overscroll-behavior: none;
 }
 
 body {

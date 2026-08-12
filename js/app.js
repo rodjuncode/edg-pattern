@@ -6,10 +6,22 @@
 const DENSIDADE_MIN = 2;
 const DENSIDADE_MAX = 48;
 
+// Rolagem. Roda de mouse e trackpad são dispositivos diferentes disfarçados de
+// um só evento: a roda manda um deltaY grande por entalhe (~100), o trackpad
+// manda uma enxurrada de valores pequenos. Tratados igual, um gesto de trackpad
+// atravessaria a faixa inteira de densidade.
+const ROLAGEM_ENTALHE = 50;  // acima disto é entalhe de roda: vale um passo, e só
+const ROLAGEM_LIMIAR  = 26;  // abaixo, acumula até somar isto — ritmo do trackpad
+const ROLAGEM_PAUSA   = 250; // ms parado que encerram o gesto e descartam a sobra
+
 const estado = {
   grelhaVisivel: true,
   densidade: 12
 };
+
+// Sobra de rolagem ainda não convertida em passo, e quando ela foi atualizada.
+let acumuladoRolagem = 0;
+let instanteUltimaRolagem = -Infinity;
 
 // Elementos, resolvidos uma vez só.
 const el = {};
@@ -28,6 +40,10 @@ function iniciar() {
   el.btGrelha.addEventListener('click', alternarGrelha);
   el.btMais.addEventListener('click', () => mudarDensidade(+1));
   el.btMenos.addEventListener('click', () => mudarDensidade(-1));
+
+  // passive:false é obrigatório — sem ele o preventDefault é ignorado e o
+  // navegador trata a rolagem como navegação (recuar página, no trackpad).
+  el.tela.addEventListener('wheel', aoRolar, { passive: false });
 
   // ResizeObserver em vez de window.resize: pega também a mudança de largura
   // causada pela barra lateral virar bandeja, que o resize da janela não
@@ -55,6 +71,42 @@ function mudarDensidade(passo) {
 
   sincronizarControles();
   redesenhar();
+}
+
+/**
+ * Rolagem sobre a área de desenho controla a densidade.
+ *
+ * Para cima, mais denso — mesma direção do botão "+", que fica acima do "−".
+ */
+function aoRolar(ev) {
+  ev.preventDefault();
+  if (ev.deltaY === 0) return;
+
+  // Gestos são independentes: parou, a sobra do anterior é descartada. Sem
+  // isto, meio passo guardado agora se somaria ao gesto de daqui a um minuto.
+  if (ev.timeStamp - instanteUltimaRolagem > ROLAGEM_PAUSA) acumuladoRolagem = 0;
+  instanteUltimaRolagem = ev.timeStamp;
+
+  // Dispositivo discreto — um evento, um passo.
+  //
+  // Dois casos caem aqui. deltaMode diferente de zero (linhas ou páginas) só
+  // vem de roda ou tecla: trackpad sempre reporta pixels, então a unidade já
+  // denuncia o dispositivo, sem precisar medir. E, em pixels, um valor grande
+  // é entalhe de roda. Acumular qualquer um dos dois faria um giro só valer
+  // dois ou três passos.
+  if (ev.deltaMode !== 0 || Math.abs(ev.deltaY) >= ROLAGEM_ENTALHE) {
+    acumuladoRolagem = 0;
+    mudarDensidade(ev.deltaY > 0 ? -1 : +1);
+    return;
+  }
+
+  // Trackpad: soma os pedaços até fechar um passo.
+  acumuladoRolagem += ev.deltaY;
+  while (Math.abs(acumuladoRolagem) >= ROLAGEM_LIMIAR) {
+    const sentido = Math.sign(acumuladoRolagem);
+    acumuladoRolagem -= sentido * ROLAGEM_LIMIAR;
+    mudarDensidade(sentido > 0 ? -1 : +1);
+  }
 }
 
 /** Deixa a interface refletindo o estado — inclusive para leitores de tela. */
