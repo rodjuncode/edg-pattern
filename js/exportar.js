@@ -47,8 +47,13 @@ function limitesDaPadronagem(preenchidas) {
  * externa de todo o contorno — e num PNG ampliado isso apareceria como meia
  * linha ao redor do desenho inteiro.
  *
- * Devolve `{ texto, largura, altura }`, ou null se não houver nada a exportar.
- * `largura` e `altura` já incluem a sangria e são o que define a proporção.
+ * Devolve `{ texto, largura, altura, celulas }`, ou null se não houver nada a
+ * exportar. `largura` e `altura` já incluem a sangria e são o que define a
+ * proporção do PNG.
+ *
+ * Espera receber **apenas células desenháveis**. Quem chama filtra antes: uma
+ * célula guardada fora da grelha atual não aparece no traço, e se entrasse na
+ * conta esticaria a caixa com vazio.
  */
 function padronagemParaSVG(preenchidas, larguraCelula, alturaCelula, traco) {
   const lim = limitesDaPadronagem(preenchidas);
@@ -78,7 +83,7 @@ function padronagemParaSVG(preenchidas, larguraCelula, alturaCelula, traco) {
     ' stroke-width="' + arredondar(traco) + '" stroke-linejoin="miter"/>\n' +
     '</svg>\n';
 
-  return { texto, largura, altura };
+  return { texto, largura, altura, celulas: preenchidas.size };
 }
 
 /**

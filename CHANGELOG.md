@@ -6,6 +6,10 @@ O que cada número significa neste projeto está em [README.md](README.md#versio
 
 ## [Não lançado]
 
+### Corrigido
+
+- O arquivo exportado saía com espaço vazio quando o estado guardava células fora da grelha atual — restos de uma densidade maior ou de uma janela maior. Elas não são desenhadas, mas entravam na medida da caixa e a esticavam. Agora só contam as células que a grelha desenha, e o diálogo avisa quantas ficaram de fora.
+
 ### Adicionado
 
 - **Primeira versão da ferramenta.** `index.html` com barra lateral e área de desenho ocupando a viewport.

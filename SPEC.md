@@ -210,6 +210,10 @@ O arquivo contém **apenas a caixa das células ocupadas**. Sem grelha, sem real
 
 A caixa é a das *células*, não a da geometria desenhada — um quadrado encostado à direita numa célula de borda deixa a faixa `W − H` vazia dentro do arquivo. Foi assim que ficou combinado, e é o comportamento previsível: o recorte segue a grelha, não o traço.
 
+**Só entram na conta as células que a grelha atual desenha.** O estado guarda células que ficaram fora depois de uma mudança de densidade ou de tamanho de janela — de propósito, para reaparecerem quando a densidade voltar. Elas não aparecem no traço, e por isso não podem medir a caixa: contá-las produzia um arquivo com um vazio do tamanho da distância até a célula fantasma mais afastada.
+
+Quando há células nessa situação, o diálogo **avisa quantas ficaram de fora** e sugere aumentar a densidade para incluí-las, em vez de descartá-las em silêncio.
+
 Acrescenta-se **meia espessura de traço em cada borda**. O contorno em SVG é centrado no caminho, então metade dele fica fora do retângulo da célula; um recorte exato cortaria ao meio a linha externa de todo o desenho, e num PNG ampliado isso apareceria como meia linha ao redor da imagem inteira.
 
 ### Formatos

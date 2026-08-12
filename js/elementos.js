@@ -196,6 +196,26 @@ function sortearForma(aleatorio, permitidas) {
 }
 
 /**
+ * Só as células que a grelha atual consegue desenhar.
+ *
+ * O estado guarda células que caíram fora da grelha depois de uma mudança de
+ * densidade ou de tamanho de janela — de propósito, para reaparecerem quando a
+ * densidade voltar. Elas não são desenhadas, e portanto não podem contar em
+ * nada que descreva o desenho: contá-las na caixa de exportação produzia um
+ * arquivo com espaço vazio do tamanho da célula fantasma mais distante.
+ */
+function celulasDentroDaGrelha(g, preenchidas) {
+  const dentro = new Map();
+
+  preenchidas.forEach(function (forma, chave) {
+    const p = chave.split(',');
+    if (celulaPorIndice(g, Number(p[0]), Number(p[1]))) dentro.set(chave, forma);
+  });
+
+  return dentro;
+}
+
+/**
  * Junta todos os elementos da padronagem num único `d`.
  *
  * `preenchidas` é um Map de "coluna,linha" para o nome da forma. A forma é

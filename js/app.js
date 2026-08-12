@@ -210,8 +210,13 @@ function propagarAbaixo(coluna, linha) {
 
 function desenharPadronagem() {
   if (!grelhaAtual) return;
-  el.padronagem.setAttribute('d', padronagemParaPath(grelhaAtual, estado.preenchidas));
-  el.btExportar.disabled = estado.preenchidas.size === 0;
+
+  const caminho = padronagemParaPath(grelhaAtual, estado.preenchidas);
+  el.padronagem.setAttribute('d', caminho);
+
+  // Sem traço na tela não há o que exportar — mesmo que o estado guarde
+  // células fora da grelha atual.
+  el.btExportar.disabled = caminho === '';
 }
 
 /* ------------------------------------------------------------ exportação -- */
@@ -224,15 +229,24 @@ function desenharPadronagem() {
  * computado, não de uma constante, para acompanhar --elemento-traco.
  */
 function montarSVG() {
-  if (!grelhaAtual || estado.preenchidas.size === 0) return null;
+  if (!grelhaAtual) return null;
+
+  // Filtra antes de medir. Célula guardada fora da grelha atual não é
+  // desenhada; se entrasse na caixa, o arquivo sairia com um vazio do tamanho
+  // da distância até ela.
+  const visiveis = celulasDentroDaGrelha(grelhaAtual, estado.preenchidas);
+  if (visiveis.size === 0) return null;
 
   const traco = parseFloat(getComputedStyle(el.padronagem).strokeWidth) || 1.5;
-  return padronagemParaSVG(
-    estado.preenchidas, grelhaAtual.larguraCelula, grelhaAtual.alturaCelula, traco);
+  const svg = padronagemParaSVG(
+    visiveis, grelhaAtual.larguraCelula, grelhaAtual.alturaCelula, traco);
+
+  svg.foraDaGrelha = estado.preenchidas.size - visiveis.size;
+  return svg;
 }
 
 function abrirExportacao() {
-  if (estado.preenchidas.size === 0) return;
+  if (el.btExportar.disabled) return;
   atualizarResumo();
   el.dialogo.showModal();
 }
@@ -283,13 +297,23 @@ function atualizarResumo() {
     return;
   }
 
-  const celulas = estado.preenchidas.size;
-  const quantas = celulas + (celulas === 1 ? ' célula' : ' células');
+  const quantas = svg.celulas + (svg.celulas === 1 ? ' célula' : ' células');
 
-  el.resumo.textContent = png
+  let texto = png
     ? dim.largura + ' × ' + dim.altura + ' px, fundo transparente. Recorte de ' + quantas + '.'
     : dim.largura + ' × ' + dim.altura + ' px de tamanho natural, escalável sem perda. ' +
       'Recorte de ' + quantas + '.';
+
+  // Avisa em vez de descartar em silêncio: o desenho guardado pode ter partes
+  // que a densidade atual não alcança, e elas não entram no arquivo.
+  if (svg.foraDaGrelha > 0) {
+    texto += ' ' + svg.foraDaGrelha +
+      (svg.foraDaGrelha === 1 ? ' célula fica' : ' células ficam') +
+      ' fora da grelha atual e não entra' + (svg.foraDaGrelha === 1 ? '' : 'm') +
+      ' — aumente a densidade para incluí-la' + (svg.foraDaGrelha === 1 ? '' : 's') + '.';
+  }
+
+  el.resumo.textContent = texto;
 }
 
 function aoConfirmarExportacao(ev) {
